@@ -1,0 +1,131 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Debug riscv_rust_os",
+            "type": "shell",
+            "command": "qemu-system-riscv64",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "args": [
+                "-nographic",
+                "-machine",
+                "virt",
+                "-smp",
+                "1",
+                "-bios",
+                "none",
+                "-kernel",
+                "./target/riscv64gc-unknown-none-elf/debug/riscv_rust_os.bin",
+                "-s",
+                "-S"
+            ],
+            "dependsOn": [
+                "Build riscv_rust_os.bin"
+            ],
+            "dependsOrder": "sequence",
+            "problemMatcher": [
+                {
+                    "pattern": [
+                        {
+                            "regexp": ".",
+                            "file": 1,
+                            "line": 1,
+                            "column": 1,
+                            "message": 1
+                        }
+                    ]
+                }
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Run riscv_rust_os",
+            "type": "shell",
+            "command": "qemu-system-riscv64",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "args": [
+                "-nographic",
+                "-machine",
+                "virt",
+                "-smp",
+                "1",
+                "-bios",
+                "none",
+                "-kernel",
+                "./target/riscv64gc-unknown-none-elf/debug/riscv_rust_os.bin"
+            ],
+            "dependsOn": [
+                "Build riscv_rust_os.bin"
+            ],
+            "dependsOrder": "sequence",
+            "problemMatcher": [
+                {
+                    "pattern": [
+                        {
+                            "regexp": ".",
+                            "file": 1,
+                            "line": 1,
+                            "column": 1,
+                            "message": 1
+                        }
+                    ]
+                }
+            ],
+        },
+        {
+            "type": "shell",
+            "command": "cargo",
+            "problemMatcher": [],
+            "label": "Build riscv_rust_os.bin",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "args": [
+                "objcopy",
+                "--bin",
+                "riscv_rust_os",
+                "--",
+                "-O",
+                "binary",
+                "./target/riscv64gc-unknown-none-elf/debug/riscv_rust_os.bin"
+            ],
+        },
+        {
+            "type": "cargo",
+            "command": "build",
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": "build",
+            "label": "Build riscv_rust_os",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": true
+            }
+        },
+        {
+            "label": "Terminate All",
+            "command": "echo ${input:terminate}",
+            "type": "shell"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "terminate",
+            "type": "command",
+            "command": "workbench.action.tasks.terminate",
+            "args": "terminateAll"
+        }
+    ]
+}

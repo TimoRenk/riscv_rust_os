@@ -1,0 +1,42 @@
+{
+    "version": "0.2",
+    "ignorePaths": [
+        ".cargo"
+    ],
+    "dictionaryDefinitions": [],
+    "dictionaries": [],
+    "words": [
+        "csrr",
+        "csrw",
+        "ecall",
+        "gdbgui",
+        "LLDB",
+        "mcmodel",
+        "medany",
+        "meie",
+        "mepc",
+        "mret",
+        "MSIE",
+        "mstatus",
+        "mtie",
+        "mtvec",
+        "multiarch",
+        "nographic",
+        "objcopy",
+        "pmpaddr",
+        "pmpcfg",
+        "repr",
+        "Riscv",
+        "rodata",
+        "satp",
+        "sbss",
+        "sdata",
+        "seie",
+        "ssie",
+        "stie",
+        "syscall",
+        "UART"
+    ],
+    "ignoreWords": [],
+    "import": []
+}
