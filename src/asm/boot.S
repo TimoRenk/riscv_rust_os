@@ -3,6 +3,4 @@
 .global _start
 _start:
 	la sp, _stack_end
-    call kernel_main
-loop:
-    j loop
+    call k_setup
