@@ -3,4 +3,4 @@
 .global _start
 _start:
 	la sp, _stack_end
-    call k_setup
+    call kernel_setup

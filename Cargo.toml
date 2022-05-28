@@ -5,8 +5,4 @@ name = "riscv_rust_os"
 readme = "README.md"
 version = "0.1.0"
 
-[[bin]]
-name = "riscv_rust_os"
-path = "src/setup.rs"
-
 [dependencies]

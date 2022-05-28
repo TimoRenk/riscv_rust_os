@@ -1,4 +1,4 @@
-use super::byte::Byte;
+use super::binary_struct::Byte;
 use super::register_mapping::RegisterMapping;
 
 //todo catch race condition?!

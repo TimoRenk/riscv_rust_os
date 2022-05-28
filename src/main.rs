@@ -1,5 +1,6 @@
 #![no_std]
 #![no_main]
+
 mod asm;
 mod kernel;
 mod user;
@@ -11,9 +12,7 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
 }
 
 #[no_mangle]
-extern "C" fn k_setup() {
-    unsafe {
-        kernel::hardware::uart::print_string("Let's GO");
-    }
-    loop {}
+extern "C" fn kernel_setup() {
+    kernel::setup();
+    kernel::hello_world();
 }
