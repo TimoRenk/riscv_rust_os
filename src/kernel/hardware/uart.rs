@@ -1,5 +1,5 @@
 use super::binary_struct::Byte;
-use super::register_mapping::RegisterMapping;
+use super::memory_mapping::MemoryMapping;
 
 //todo catch race condition?!
 pub unsafe fn print_string(str: &str) {
@@ -11,11 +11,11 @@ pub unsafe fn print_char(char: char) {
 
 const UART_BASE_ADDR: usize = 0x1000_0000;
 static mut UART: UART = UART {
-    register: RegisterMapping::new(UART_BASE_ADDR),
+    register: MemoryMapping::new(UART_BASE_ADDR),
 };
 
 struct UART {
-    register: RegisterMapping<UartRegister>,
+    register: MemoryMapping<'static, UartRegister>,
 }
 
 impl UART {

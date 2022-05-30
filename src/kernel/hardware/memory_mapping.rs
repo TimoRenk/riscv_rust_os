@@ -1,18 +1,18 @@
-pub struct RegisterMapping<T: 'static> {
+pub struct MemoryMapping<'a, T> {
     address: usize,
-    register: Option<Wrapper<T>>,
+    data: Option<Wrapper<'a, T>>,
 }
-struct Wrapper<T: 'static>(&'static mut T);
-impl<T> RegisterMapping<T> {
+struct Wrapper<'a, T>(&'a mut T);
+impl<'a, T> MemoryMapping<'a, T> {
     pub const fn new(address: usize) -> Self {
-        RegisterMapping {
+        MemoryMapping {
             address,
-            register: Option::None,
+            data: Option::None,
         }
     }
     #[must_use]
     pub fn get(&mut self) -> &mut T {
-        self.register
+        self.data
             .get_or_insert(Wrapper(unsafe {
                 (self.address as *mut T).as_mut().unwrap()
             }))

@@ -1,7 +1,6 @@
 #![no_std]
 #![no_main]
 
-mod asm;
 mod kernel;
 mod user;
 
@@ -14,5 +13,5 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
 #[no_mangle]
 extern "C" fn kernel_setup() {
     kernel::setup();
-    kernel::hello_world();
+    //todo! Not reached due to mret
 }

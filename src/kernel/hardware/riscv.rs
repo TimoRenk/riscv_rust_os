@@ -1,56 +1,96 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
 use core::arch::asm;
 
-/// Reads the 'machine status'.
-pub fn read_mstatus() -> u64 {
-    let mstatus: u64;
-    unsafe { asm!("csrr {}, mstatus", out(reg) mstatus) }
-    mstatus
-}
+#[warn(dead_code)]
+use super::binary_struct::RegisterEntry;
+type RegEnt = RegisterEntry;
+/// mstatus: machine status
+///     mpp: the previous mode
+///         u: User
+///     mie: machine-mode interrupt enable
+pub const MSTATUS_MPP_U: (RegEnt, RegEnt) = ((11, false), (12, false));
+pub const MSTATUS_MIE: RegEnt = (3, true);
+/// mie: machine-mode interrupt
+///     meie: external
+///     mtie: timer
+///     msie: software
+pub const MIE_MEIE: RegEnt = (11, true);
+pub const MIE_MTIE: RegEnt = (7, true);
+pub const MIE_MSIE: RegEnt = (3, true);
+/// sie: supervisor interrupt enable
+///     seie: external
+///     stie: times
+///     ssie: software
+pub const SIE_SEIE: RegEnt = (9, true);
+pub const SIE_STIE: RegEnt = (5, true);
+pub const SIE_SSIE: RegEnt = (1, true);
 
-/// Writes the 'machine status'.
-pub fn write_mstatus(mstatus: u64) {
-    unsafe { asm!("csrw mstatus, {}", in(reg) mstatus) }
+pub enum Register {
+    MStatus, // Machine Status
+    MEPC,    // 'machine exception program counter' holds the 'return from exception' address.
+    SATP,    // 'supervisor address translation and protection' holds the 'page table' address.
+    MIE,     // 'machine interrupt enable'
+    SIE,     // 'supervisor interrupt enable'
+    MTVec,   // 'machine-mode interrupt vector'
+    PmpCfg0,
+    PmpAddr0,
+    A0,
+    A1,
+    A2,
+    A3,
+    A4,
+    A5,
+    A6,
+    A7,
 }
-
-/// Reads the 'machine exception program counter' holds the 'return from exception' address.
-pub fn read_mepc() -> u64 {
-    let mepc: u64;
-    unsafe { asm!("csrr {}, mepc", out(reg) mepc) }
-    mepc
+/// Read register
+pub fn read_register(register: Register) -> u64 {
+    let output: u64;
+    unsafe {
+        match register {
+            Register::MStatus => asm!("csrr {}, mstatus", out(reg) output),
+            Register::MEPC => asm!("csrr {}, mepc", out(reg) output),
+            Register::SATP => asm!("csrr {}, satp", out(reg) output),
+            Register::MIE => asm!("csrr {}, mie", out(reg) output),
+            Register::SIE => asm!("csrr {}, sie", out(reg) output),
+            Register::MTVec => asm!("csrr {}, mtvec", out(reg) output),
+            Register::PmpCfg0 => asm!("csrr {}, pmpcfg0", out(reg) output),
+            Register::PmpAddr0 => asm!("csrr {}, pmpaddr0", out(reg) output),
+            Register::A0 => asm!("add {}, a0, zero", out(reg) output),
+            Register::A1 => asm!("add {}, a1, zero", out(reg) output),
+            Register::A2 => asm!("add {}, a2, zero", out(reg) output),
+            Register::A3 => asm!("add {}, a3, zero", out(reg) output),
+            Register::A4 => asm!("add {}, a4, zero", out(reg) output),
+            Register::A5 => asm!("add {}, a5, zero", out(reg) output),
+            Register::A6 => asm!("add {}, a6, zero", out(reg) output),
+            Register::A7 => asm!("add {}, a7, zero", out(reg) output),
+        }
+    }
+    output
 }
-
-/// Writes the 'machine exception program counter' holds the 'return from exception' address.
-pub fn write_mepc(mepc: u64) {
-    unsafe { asm!("csrw mepc, {}", in(reg) mepc) }
-}
-
-/// Writes the 'supervisor address translation and protection' holds the 'page table' address.
-pub fn write_satp(satp: u64) {
-    unsafe { asm!("csrw satp, {}", in(reg) satp) }
-}
-
-/// Reads the 'machine interrupt enable'.
-pub fn read_mie() -> u64 {
-    let mie: u64;
-    unsafe { asm!("csrr {}, mie", out(reg) mie) }
-    mie
-}
-
-/// Writes the 'machine interrupt enable'.
-pub fn write_mie(mie: u64) {
-    unsafe { asm!("csrw mie, {}", in(reg) mie) }
-}
-
-/// Reads the 'supervisor interrupt enable'.
-pub fn read_sie() -> u64 {
-    let sie: u64;
-    unsafe { asm!("csrr {}, sie", out(reg) sie) }
-    sie
-}
-
-/// Writes the 'supervisor interrupt enable'.
-pub fn write_sie(sie: u64) {
-    unsafe { asm!("csrw sie, {}", in(reg) sie) }
+/// Write register
+pub fn write_register(register: Register, input: u64) {
+    unsafe {
+        match register {
+            Register::MStatus => asm!("csrw mstatus, {}", in(reg) input),
+            Register::MEPC => asm!("csrw mepc, {}", in(reg) input),
+            Register::SATP => asm!("csrw satp, {}", in(reg) input),
+            Register::MIE => asm!("csrw mie, {}", in(reg) input),
+            Register::SIE => asm!("csrw sie, {}", in(reg) input),
+            Register::MTVec => asm!("csrw mtvec, {}", in(reg) input),
+            Register::PmpCfg0 => asm!("csrw pmpcfg0, {}", in(reg) input),
+            Register::PmpAddr0 => asm!("csrw pmpaddr0, {}", in(reg) input),
+            Register::A0 => asm!("add a0, {}, zero", in(reg) input),
+            Register::A1 => asm!("add a1, {}, zero", in(reg) input),
+            Register::A2 => asm!("add a2, {}, zero", in(reg) input),
+            Register::A3 => asm!("add a3, {}, zero", in(reg) input),
+            Register::A4 => asm!("add a4, {}, zero", in(reg) input),
+            Register::A5 => asm!("add a5, {}, zero", in(reg) input),
+            Register::A6 => asm!("add a6, {}, zero", in(reg) input),
+            Register::A7 => asm!("add a7, {}, zero", in(reg) input),
+        }
+    }
 }
 
 /// Writes the 'machine-mode interrupt vector'.
