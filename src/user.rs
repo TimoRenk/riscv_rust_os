@@ -3,7 +3,16 @@ use syscall as sys;
 
 pub fn main() -> ! {
     sys::println("Hello Bamberg!");
-    crate::kernel::system_calls::print_char('Z');
-    crate::kernel::system_calls::print_string("Hello World!");
+    sys::print_num(000004200000);
+    loop {
+        let input = sys::get_char();
+        if input == 's' {
+            continue;
+        } else if input == 'X' {
+            break;
+        }
+        sys::print_char(input);
+    }
+    sys::print("\n\n### END OF MAIN ###");
     loop {}
 }
