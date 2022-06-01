@@ -1,4 +1,6 @@
-use super::binary_struct::Byte;
+use core::ops::{Div, Rem};
+
+use super::binary_struct::{BinaryOperations, Byte, MaxDigits};
 use super::memory_mapping::MemoryMapping;
 
 //todo catch race condition?!

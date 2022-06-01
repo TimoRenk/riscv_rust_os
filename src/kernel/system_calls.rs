@@ -1,26 +1,56 @@
-use super::hardware::riscv::*;
-use core::arch::asm;
+use super::hardware::{memory_mapping::MemoryMapping, uart};
 
-pub const PRINT_CHAR: u64 = 1;
-pub const PRINT_STRING: u64 = 2;
+pub enum SystemCall {
+    PrintString,
+    PrintChar,
+    PrintNum,
+    GetChar,
+}
+macro_rules! syscall_matching {
+    ($number:ident: $($syscall:expr), +) => {
+        $(if $number == $syscall as u64 {
+            return Ok($syscall);
+        }) +
+    };
+}
+pub struct Error {
+    pub message: &'static str,
+    pub syscall: u64,
+}
 
-fn system_call(number: u64, param_1: u64, param_2: u64) -> u64 {
-    let output;
-    unsafe {
-        asm!("add a7, {}, zero", in(reg) number);
-        asm!("add a1, {}, zero", in(reg) param_2);
-        asm!("add a0, {}, zero", in(reg) param_1);
-        asm!("ecall");
-        asm!("add {}, a0, zero", out(reg) output);
+impl TryFrom<u64> for SystemCall {
+    type Error = Error;
+    fn try_from(number: u64) -> Result<Self, Error> {
+        syscall_matching!(
+            number: Self::PrintString,
+            Self::PrintChar,
+            Self::GetChar,
+            Self::PrintNum
+        );
+        Err(Error {
+            message: "Kernel Error: Illegal syscall ",
+            syscall: number,
+        })
     }
+}
 
-    output
+pub unsafe fn print_string(str_ptr: u64, size: u64) {
+    let mut str_ptr = str_ptr as *const u8;
+    for _ in 0..size {
+        let char = *MemoryMapping::<u8>::new(str_ptr as usize).get();
+        uart::print_char(char as char);
+        str_ptr = str_ptr.add(1);
+    }
 }
-#[allow(dead_code)]
-pub fn print_char(char: char) {
-    system_call(PRINT_CHAR, char as u64, 0);
+
+pub unsafe fn print_char(char: u64) {
+    uart::print_char(char as u8 as char);
 }
-#[allow(dead_code)]
-pub fn print_string(string: &str) {
-    system_call(PRINT_STRING, string.as_ptr() as u64, string.len() as u64);
+
+pub unsafe fn get_char() -> char {
+    uart::get_char()
+}
+
+pub unsafe fn print_num(number: u64) {
+    uart::print_num(number);
 }

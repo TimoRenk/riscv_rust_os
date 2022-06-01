@@ -2,8 +2,8 @@
 mod asm;
 mod exception_handler;
 mod hardware;
-pub mod system_calls;
-pub use hardware::setup::setup;
+mod system_calls;
+pub(super) use hardware::setup::setup;
 
 //todo implement shutdown
 fn _shutdown() {}

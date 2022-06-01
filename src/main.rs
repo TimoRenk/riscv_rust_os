@@ -2,6 +2,7 @@
 #![no_main]
 
 mod kernel;
+mod riscv;
 mod user;
 
 //todo!
@@ -11,7 +12,7 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
 }
 
 #[no_mangle]
-extern "C" fn kernel_setup() {
+unsafe extern "C" fn kernel_setup() {
     kernel::setup();
     //todo! Not reached due to mret
 }
