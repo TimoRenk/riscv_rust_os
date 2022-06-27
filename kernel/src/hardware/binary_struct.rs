@@ -6,6 +6,7 @@ use riscv_utils::RegisterEntry;
 
 pub type Byte = BinaryStruct<u8>;
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct BinaryStruct<T>(T);
 impl<T> BinaryStruct<T>
 where

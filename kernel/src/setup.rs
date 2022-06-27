@@ -1,7 +1,8 @@
 pub use core::arch::asm;
 
-use crate::asm;
 use crate::hardware::binary_struct::BinaryStruct;
+use crate::user_progs::Progs;
+use crate::{asm, hardware, user_progs};
 use riscv_utils::*;
 
 static mut SETUP: bool = false;
@@ -34,15 +35,10 @@ pub unsafe fn setup() {
     let trap_handler = asm::exception as u64;
     // disable paging for now.
     let paging = 0;
-    // configure Physical Memory Protection to give user mode access to all of physical memory.
-    let pmp_addr_0 = 0x3fffffffffffff;
-    let pmpcfg0 = 0xf;
-    // Machine exception ptr for mret, requires gcc -mcmodel=medany
-    let program_ptr = 0x80100000u64;
-    write_machine_reg!(trap_handler => "mtvec",
-        paging => "satp",
-        pmp_addr_0 => "pmpaddr0",
-        pmpcfg0 => "pmpcfg0",
-        program_ptr => "mepc"
+    write_machine_reg!(
+        trap_handler => "mtvec",
+        paging => "satp"
     );
+    // configure Physical Memory Protection to give user mode access to all of physical memory.
+    hardware::pmp::init();
 }

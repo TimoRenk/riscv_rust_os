@@ -1,0 +1,14 @@
+[package]
+authors = ["Timo Renk <renk.git@gmail.com>"]
+edition = "2021"
+name = "user_2"
+readme = "README.md"
+version = "0.1.0"
+
+[dependencies]
+riscv_utils = { path = "../riscv" }
+user_shared = { path = "../user_shared" }
+
+[[bin]]
+name = "user_2"
+path = "src/user_2.rs"

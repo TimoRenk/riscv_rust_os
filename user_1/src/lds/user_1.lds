@@ -2,6 +2,7 @@ OUTPUT_ARCH( "riscv" )
 
 ENTRY( _start )
 
+
 PHDRS
 {
   text PT_LOAD;
@@ -34,7 +35,6 @@ SECTIONS
     *(.sbss .sbss.*) *(.bss .bss.*)
     PROVIDE(_bss_end = .);
   }
-
 
   PROVIDE(_stack_start = _bss_end);
   PROVIDE(_stack_size = 0x80000); /*(524 KiB)*/

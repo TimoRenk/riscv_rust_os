@@ -1,9 +1,7 @@
 #![no_std]
 #![no_main]
-mod asm;
-mod panic_handler;
-mod system_calls;
 use system_calls as sys;
+use user_shared::*;
 
 #[no_mangle]
 extern "C" fn main() {

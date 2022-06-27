@@ -14,7 +14,23 @@ name = "riscv_utils"
 version = "0.1.0"
 
 [[package]]
-name = "user_progs"
+name = "user_1"
+version = "0.1.0"
+dependencies = [
+ "riscv_utils",
+ "user_shared",
+]
+
+[[package]]
+name = "user_2"
+version = "0.1.0"
+dependencies = [
+ "riscv_utils",
+ "user_shared",
+]
+
+[[package]]
+name = "user_shared"
 version = "0.1.0"
 dependencies = [
  "riscv_utils",

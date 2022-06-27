@@ -29,6 +29,10 @@ where
             UART.print_char(ascii);
         }
     }
+    if !first {
+        let ascii = 0x30;
+        UART.print_char(ascii);
+    }
 }
 fn to_single_digits<T, const DIGITS: usize>(number: T) -> [u8; DIGITS]
 where
