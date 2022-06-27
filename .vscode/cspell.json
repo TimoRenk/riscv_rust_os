@@ -38,7 +38,8 @@
         "ssie",
         "stie",
         "syscall",
-        "UART"
+        "UART",
+        "usertext"
     ],
     "ignoreWords": [],
     "import": []
