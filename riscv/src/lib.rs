@@ -1,4 +1,6 @@
+#![no_std]
 #![allow(dead_code)]
+
 type RegEnt = RegisterEntry;
 /// mstatus: machine status
 ///     mpp: the previous mode
@@ -31,6 +33,7 @@ pub type RegisterEntry = (usize, bool);
 // MTVec,   // 'machine-mode interrupt vector'
 // PmpCfg0,
 // PmpAddr0,
+#[macro_export]
 macro_rules! read_machine_reg {
     ($($register:literal => $data:ident), +) => {
         asm!(
@@ -39,6 +42,7 @@ macro_rules! read_machine_reg {
         )
     }
 }
+#[macro_export]
 macro_rules! write_machine_reg {
     ($($data:ident => $register:literal), +) => {
         $(let $data: u64 = $data;) +
@@ -53,6 +57,7 @@ macro_rules! write_machine_reg {
     };
 }
 ///!!!ALWAYS read in descending register order!!!
+#[macro_export]
 macro_rules! read_function_reg {
     ($($register:literal => $data:ident), +) => {
         asm!(
@@ -61,6 +66,7 @@ macro_rules! read_function_reg {
         )
     }
 }
+#[macro_export]
 ///!!!ALWAYS write in function parameter order!!!
 macro_rules! write_function_reg {
     ($($data:ident => $register:literal), +) => {
@@ -74,7 +80,3 @@ macro_rules! write_function_reg {
         asm!(concat!("mv ", $register, ", {}"), in(reg) data)
     };
 }
-pub(crate) use read_function_reg;
-pub(crate) use read_machine_reg;
-pub(crate) use write_function_reg;
-pub(crate) use write_machine_reg;

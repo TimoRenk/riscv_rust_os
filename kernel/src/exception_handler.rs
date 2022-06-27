@@ -2,7 +2,8 @@ use core::arch::asm;
 
 use super::hardware::uart;
 use super::system_calls::*;
-use crate::riscv::*;
+use riscv_utils::*;
+
 #[no_mangle]
 unsafe extern "C" fn exception_handler() {
     let number: u64;
@@ -20,6 +21,7 @@ unsafe extern "C" fn exception_handler() {
             SystemCall::PrintChar => print_char(param_0),
             SystemCall::GetChar => return_value = get_char() as u64,
             SystemCall::PrintNum => print_num(param_0),
+            SystemCall::Exit => exit(),
         },
         Err(error) => {
             uart::print_string(error.message);

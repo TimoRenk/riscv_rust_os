@@ -4,7 +4,7 @@ ENTRY( _start )
 
 MEMORY
 {
-  ram (wxar): ORIGIN = 0x80000000, LENGTH = 128M
+  ram (wxar): ORIGIN = 0x80100000, LENGTH = 128M
 }
 
 PHDRS
@@ -17,6 +17,7 @@ PHDRS
 
 SECTIONS
 {
+  . = 0x80100000;
   .text : {
     . = ALIGN(16);
     *(.text.init) *(.text .text.*)

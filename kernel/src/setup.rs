@@ -1,8 +1,8 @@
-use crate::kernel::asm;
+pub use core::arch::asm;
 
-use super::binary_struct::BinaryStruct;
-use crate::riscv::*;
-use core::arch::asm;
+use crate::asm;
+use crate::hardware::binary_struct::BinaryStruct;
+use riscv_utils::*;
 
 static mut SETUP: bool = false;
 
@@ -38,14 +38,11 @@ pub unsafe fn setup() {
     let pmp_addr_0 = 0x3fffffffffffff;
     let pmpcfg0 = 0xf;
     // Machine exception ptr for mret, requires gcc -mcmodel=medany
-    let program_ptr = crate::user::main as u64;
+    let program_ptr = 0x80100000u64;
     write_machine_reg!(trap_handler => "mtvec",
         paging => "satp",
         pmp_addr_0 => "pmpaddr0",
         pmpcfg0 => "pmpcfg0",
         program_ptr => "mepc"
     );
-
-    // switch to user mode (configured in mstatus) and jump to address in mepc CSR -> main().
-    asm!("mret");
 }

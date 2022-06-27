@@ -1,12 +1,13 @@
 #![allow(dead_code)]
-use crate::riscv;
 use core::arch::asm;
+use riscv_utils as riscv;
 
 pub enum SysCall {
     PrintString,
     PrintChar,
     PrintNum,
     GetChar,
+    Exit = 42,
 }
 
 unsafe fn system_call(syscall: SysCall, param_0: u64, param_1: u64) -> u64 {
@@ -51,5 +52,10 @@ pub fn println(string: &str) {
 pub fn print_num(number: u64) {
     unsafe {
         system_call(SysCall::PrintNum, number, 0);
+    }
+}
+pub fn exit() {
+    unsafe {
+        system_call(SysCall::Exit, 0, 0);
     }
 }

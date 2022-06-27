@@ -1,8 +1,2 @@
-[package]
-authors = ["Timo Renk <renk.git@gmail.com>"]
-edition = "2021"
-name = "riscv_rust_os"
-readme = "README.md"
-version = "0.1.0"
-
-[dependencies]
+[workspace]
+members = ["kernel", "riscv", "user"]

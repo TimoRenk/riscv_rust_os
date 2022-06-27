@@ -1,8 +1,8 @@
-use crate::riscv::RegisterEntry;
 use core::{
     cmp::PartialOrd,
     ops::{BitAnd, BitOr, Range, Shl},
 };
+use riscv_utils::RegisterEntry;
 
 pub type Byte = BinaryStruct<u8>;
 #[repr(C)]
