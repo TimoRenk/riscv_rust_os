@@ -17,8 +17,6 @@
             "MIMode": "gdb",
             "miDebuggerPath": "gdb-multiarch",
             "miDebuggerServerAddress": "localhost:1234",
-            "miDebuggerArgs": "set architecture riscv:rv64",
-            "targetArchitecture": "x86_64",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
@@ -29,6 +27,18 @@
                     "description": "riscv",
                     "text": "set architecture riscv:rv64",
                     "ignoreFailures": false,
+                },
+            ],
+            "postRemoteConnectCommands": [
+                {
+                    "description": "Restore user 1",
+                    "text": "restore ./target/riscv64gc-unknown-none-elf/debug/user_1.bin binary 0x80100000",
+                    "ignoreFailures": false
+                },
+                {
+                    "description": "Restore user 2",
+                    "text": "restore ./target/riscv64gc-unknown-none-elf/debug/user_2.bin binary 0x80200000",
+                    "ignoreFailures": false
                 }
             ],
             "postDebugTask": "Terminate All"

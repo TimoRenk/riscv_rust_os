@@ -44,42 +44,6 @@
             }
         },
         {
-            "label": "Run riscv_rust_os",
-            "type": "shell",
-            "command": "qemu-system-riscv64",
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "args": [
-                "-nographic",
-                "-machine",
-                "virt",
-                "-smp",
-                "1",
-                "-bios",
-                "none",
-                "-kernel",
-                "./target/riscv64gc-unknown-none-elf/debug/riscv_rust_os.bin"
-            ],
-            "dependsOn": [
-                "Build riscv_rust_os.bin"
-            ],
-            "dependsOrder": "sequence",
-            "problemMatcher": [
-                {
-                    "pattern": [
-                        {
-                            "regexp": ".",
-                            "file": 1,
-                            "line": 1,
-                            "column": 1,
-                            "message": 1
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "type": "shell",
             "command": "cargo",
             "problemMatcher": [],
@@ -134,63 +98,14 @@
             ]
         },
         {
-            "label": "Build and convert user binaries",
+            "label": "Build user binaries",
             "dependsOn": [
                 "Build user_1.bin",
-                "Convert user_1",
                 "Build user_2.bin",
-                "Convert user_2"
             ],
-            "dependsOrder": "sequence",
             "problemMatcher": [
                 "$rustc"
             ]
-        },
-        {
-            "label": "Convert user_1",
-            "type": "shell",
-            "command": "xxd",
-            "problemMatcher": [],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "args": [
-                "-i",
-                "./target/riscv64gc-unknown-none-elf/debug/user_1.bin",
-                ">",
-                "./kernel/src/user_progs/user_1.h"
-            ],
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared",
-                "showReuseMessage": true,
-                "clear": true
-            }
-        },
-        {
-            "label": "Convert user_2",
-            "type": "shell",
-            "command": "xxd",
-            "problemMatcher": [],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "args": [
-                "-i",
-                "./target/riscv64gc-unknown-none-elf/debug/user_2.bin",
-                ">",
-                "./kernel/src/user_progs/user_2.h"
-            ],
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared",
-                "showReuseMessage": true,
-                "clear": true
-            }
         },
         {
             "type": "cargo",

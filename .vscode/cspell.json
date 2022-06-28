@@ -11,6 +11,7 @@
         "ecall",
         "gdbgui",
         "LLDB",
+        "mcause",
         "mcmodel",
         "medany",
         "meie",
