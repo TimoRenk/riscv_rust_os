@@ -1,6 +1,6 @@
 use crate::{
     hardware::{binary_struct::BinaryStruct, memory_mapping::MemoryMapping},
-    user_progs::{self},
+    user_prog::{self},
 };
 
 use super::system_calls;
@@ -8,7 +8,7 @@ use riscv_utils::*;
 
 #[no_mangle]
 unsafe extern "C" fn exception_handler() {
-    let user_progs::ProgReg { mepc, sp } = user_progs::save_prog();
+    let user_prog::ProgReg { mepc, sp } = user_prog::save_prog();
     let mcause: u64;
     read_machine_reg!("mcause" => mcause);
     let mut mcause = BinaryStruct::from(mcause);
@@ -28,7 +28,7 @@ unsafe extern "C" fn exception_handler() {
                 read_machine_reg!("mtval" => mtval);
                 panic!(
                     "Instruction access fault in user prog: {:?}, mepc: {}, mtval: {}",
-                    user_progs::get(),
+                    user_prog::get(),
                     mepc,
                     mtval
                 );
@@ -47,7 +47,7 @@ unsafe extern "C" fn exception_handler() {
             }
         }
     }
-    user_progs::restore_prog();
+    user_prog::restore_prog();
 }
 
 type Stack = [u64; 32];

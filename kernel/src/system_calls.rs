@@ -2,7 +2,7 @@ pub use core::arch::asm;
 use riscv_utils::*;
 
 use super::hardware::{memory_mapping::MemoryMapping, uart};
-use crate::user_progs::{self};
+use crate::user_prog::{self};
 
 macro_rules! syscall_matching {
     ($number:ident: $($syscall:expr), +) => {
@@ -28,23 +28,23 @@ pub unsafe fn syscall(number: u64, param_0: u64, param_1: u64) {
     match syscall_from(number) {
         SysCall::PrintString => {
             print_string(param_0, param_1);
-            user_progs::increment_mepc();
+            user_prog::increment_mepc();
         }
         SysCall::PrintChar => {
             print_char(param_0);
-            user_progs::increment_mepc();
+            user_prog::increment_mepc();
         }
         SysCall::GetChar => {
             let return_value = get_char() as u64;
             write_function_reg!(return_value => "a0");
-            user_progs::increment_mepc();
+            user_prog::increment_mepc();
         }
         SysCall::PrintNum => {
             print_num(param_0);
-            user_progs::increment_mepc();
+            user_prog::increment_mepc();
         }
         SysCall::Exit => exit(),
-        SysCall::Yield => todo!(),
+        SysCall::Yield => sys_yield(),
     }
 }
 
@@ -70,5 +70,14 @@ unsafe fn print_num(number: u64) {
 }
 
 unsafe fn exit() {
-    user_progs::start_prog(user_progs::next());
+    user_prog::start_prog(user_prog::get());
+}
+
+unsafe fn sys_yield() {
+    let next = user_prog::next();
+    if !user_prog::is_started(next) {
+        user_prog::start_prog(next);
+    }
+    user_prog::switch_prog(next);
+    user_prog::increment_mepc();
 }

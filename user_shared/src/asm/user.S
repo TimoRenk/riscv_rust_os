@@ -3,7 +3,7 @@
 _start:
 	la sp, _stack_end
 	call main
-goaway:
+exit:
 	li	a7, 42
 	li	a0, 0
 	ecall

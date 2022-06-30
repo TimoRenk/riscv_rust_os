@@ -5,6 +5,12 @@ use user_shared::*;
 
 #[no_mangle]
 extern "C" fn main() {
-    sys::print_num(2);
+    for i in 0..7000000 {
+        if i % 1000000 == 0 {
+            sys::print("\n2: current number is: ");
+            sys::print_num(i);
+            sys::sys_yield();
+        }
+    }
     sys::exit();
 }

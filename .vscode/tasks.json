@@ -22,7 +22,7 @@
                 "-S"
             ],
             "dependsOn": [
-                "Build riscv_rust_os.bin"
+                "Build riscv_rust_os"
             ],
             "dependsOrder": "sequence",
             "problemMatcher": [
@@ -47,7 +47,7 @@
             "type": "shell",
             "command": "cargo",
             "problemMatcher": [],
-            "label": "Build riscv_rust_os.bin",
+            "label": "Build riscv_rust_os",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
@@ -65,7 +65,7 @@
             "type": "shell",
             "command": "cargo",
             "problemMatcher": [],
-            "label": "Build user_1.bin",
+            "label": "Build user_1",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
@@ -83,7 +83,7 @@
             "type": "shell",
             "command": "cargo",
             "problemMatcher": [],
-            "label": "Build user_2.bin",
+            "label": "Build user_2",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
@@ -100,8 +100,8 @@
         {
             "label": "Build user binaries",
             "dependsOn": [
-                "Build user_1.bin",
-                "Build user_2.bin",
+                "Build user_1",
+                "Build user_2",
             ],
             "problemMatcher": [
                 "$rustc"
@@ -114,7 +114,7 @@
                 "$rustc"
             ],
             "group": "build",
-            "label": "Build riscv_rust_os",
+            "label": "Build",
             "presentation": {
                 "echo": true,
                 "reveal": "always",

@@ -1,14 +1,13 @@
 #![no_std]
 #![no_main]
 
-//todo
 mod asm;
 mod exception_handler;
 mod hardware;
 mod panic_handler;
 mod setup;
 mod system_calls;
-mod user_progs;
+mod user_prog;
 
 //todo implement shutdown
 fn _shutdown() {}
@@ -17,5 +16,5 @@ fn _shutdown() {}
 unsafe extern "C" fn kernel_setup() {
     setup::setup();
     // switch to user mode (configured in mstatus) and jump to address in mepc CSR -> main().
-    user_progs::start_prog(user_progs::Prog::User1);
+    user_prog::start_prog(user_prog::get());
 }

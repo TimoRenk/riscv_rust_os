@@ -1,7 +1,7 @@
 use riscv_utils::write_machine_reg;
 
 use super::binary_struct::Byte;
-use crate::user_progs::Prog;
+use crate::user_prog::Prog;
 
 pub unsafe fn init() {
     let pmp_addr_0 = 0x80000000u64 >> 2; // devices

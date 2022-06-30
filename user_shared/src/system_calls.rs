@@ -52,3 +52,8 @@ pub fn exit() {
         system_call(SysCall::Exit, 0, 0);
     }
 }
+pub fn sys_yield() {
+    unsafe {
+        system_call(SysCall::Yield, 0, 0);
+    }
+}
