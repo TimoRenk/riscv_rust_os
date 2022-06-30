@@ -1,5 +1,7 @@
 #![no_std]
 #![allow(dead_code)]
+mod sys_call;
+pub use sys_call::SysCall;
 
 type RegEnt = RegisterEntry;
 /// mstatus: machine status
@@ -36,7 +38,7 @@ pub type RegisterEntry = (usize, bool);
 #[macro_export]
 macro_rules! read_machine_reg {
     ($($register:literal => $data:ident), +) => {
-        asm!(
+        core::arch::asm!(
             $(concat!("csrr ", "{", stringify!($data), "}, ", $register)), +,
             $($data = out(reg) $data), +
         )
@@ -46,21 +48,21 @@ macro_rules! read_machine_reg {
 macro_rules! write_machine_reg {
     ($($data:ident => $register:literal), +) => {
         $(let $data: u64 = $data;) +
-        asm!(
+        core::arch::asm!(
             $(concat!("csrw ", $register, ", {}")), +,
             $(in(reg) $data), +
         )
     };
     ($data:expr => $register:literal) => {
         let data: u64 = $data;
-        asm!(concat!("csrw ", $register, ", {}"), in(reg) data)
+        core::arch::asm!(concat!("csrw ", $register, ", {}"), in(reg) data)
     };
 }
 ///!!!ALWAYS read in descending register order!!!
 #[macro_export]
 macro_rules! read_function_reg {
     ($($register:literal => $data:ident), +) => {
-        asm!(
+        core::arch::asm!(
             $(concat!("mv ", "{}, ", $register)), +,
             $(out(reg) $data), +
         )
@@ -70,13 +72,13 @@ macro_rules! read_function_reg {
 ///!!!ALWAYS write in function parameter order!!!
 macro_rules! write_function_reg {
     ($($data:ident => $register:literal), +) => {
-        asm!(
+        core::arch::asm!(
             $(concat!("mv ", $register, ", {}")), +,
             $(in(reg) $data), +
         )
     };
     ($data:expr => $register:literal) => {
         let data: u64 = $data;
-        asm!(concat!("mv ", $register, ", {}"), in(reg) data)
+        core::arch::asm!(concat!("mv ", $register, ", {}"), in(reg) data)
     };
 }

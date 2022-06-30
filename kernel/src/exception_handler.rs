@@ -1,40 +1,53 @@
-use core::arch::asm;
-
-use crate::hardware::binary_struct::BinaryStruct;
+use crate::{
+    hardware::{binary_struct::BinaryStruct, memory_mapping::MemoryMapping},
+    user_progs::{self},
+};
 
 use super::system_calls;
 use riscv_utils::*;
 
 #[no_mangle]
 unsafe extern "C" fn exception_handler() {
-    let number: u64;
-    let param_0;
-    let param_1;
-    read_function_reg!(
-        "a7" => number,
-        "a1" => param_1,
-        "a0" => param_0
-    );
+    let user_progs::ProgReg { mepc, sp } = user_progs::save_prog();
     let mcause: u64;
     read_machine_reg!("mcause" => mcause);
-    // Interrupt
-    if BinaryStruct::from(mcause).is_set(63) {
-        return;
+    let mut mcause = BinaryStruct::from(mcause);
+    let interrupt = mcause.is_set(63);
+    if interrupt {
+        mcause.at(63, false);
+        match mcause.get() {
+            _ => {
+                panic!("Interrupt occurred: TODO");
+            }
+        }
+    } else {
+        match mcause.get() {
+            1 => {
+                // Instruction access fault
+                let mtval: u64;
+                read_machine_reg!("mtval" => mtval);
+                panic!(
+                    "Instruction access fault in user prog: {:?}, mepc: {}, mtval: {}",
+                    user_progs::get(),
+                    mepc,
+                    mtval
+                );
+            }
+            8 => {
+                // Ecall from user-mode
+                let stack: Stack = *MemoryMapping::new(sp as usize).get();
+                let number = stack[16];
+                let param_0 = stack[9];
+                let param_1 = stack[10];
+                system_calls::syscall(number, param_0, param_1);
+            }
+            _ => {
+                // Unsupported exception
+                panic!("Unsupported exception with code: {}", mcause.get());
+            }
+        }
     }
-    // Instruction access fault
-    if mcause == 1 {
-        let mepc: u64;
-        let mtval: u64;
-        read_machine_reg!("mepc" => mepc, "mtval" => mtval);
-        system_calls::print_str("\n### Instruction access fault ###\n  mepc: ");
-        system_calls::print_num(mepc);
-        system_calls::print_str("\n  mtval: ");
-        system_calls::print_num(mtval);
-        system_calls::exit();
-        return;
-    }
-    // Ecall from user-mode
-    if mcause == 8 {
-        system_calls::syscall(number, param_0, param_1);
-    }
+    user_progs::restore_prog();
 }
+
+type Stack = [u64; 32];

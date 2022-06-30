@@ -1,14 +1,7 @@
 #![allow(dead_code)]
 use core::arch::asm;
 use riscv_utils as riscv;
-
-pub enum SysCall {
-    PrintString,
-    PrintChar,
-    PrintNum,
-    GetChar,
-    Exit = 42,
-}
+use riscv_utils::SysCall;
 
 unsafe fn system_call(syscall: SysCall, param_0: u64, param_1: u64) -> u64 {
     let number = syscall as u64;

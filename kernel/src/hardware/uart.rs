@@ -4,7 +4,7 @@ use super::binary_struct::{BinaryOperations, Byte, MaxDigits};
 use super::memory_mapping::MemoryMapping;
 
 //todo catch race condition?!
-pub unsafe fn print_string(str: &str) {
+pub unsafe fn print_str(str: &str) {
     str.chars().for_each(|c| print_char(c));
 }
 pub unsafe fn print_char(char: char) {

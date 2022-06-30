@@ -1,8 +1,7 @@
-use core::arch::asm;
 use riscv_utils::write_machine_reg;
 
 use super::binary_struct::Byte;
-use crate::user_progs::Progs;
+use crate::user_progs::Prog;
 
 pub unsafe fn init() {
     let pmp_addr_0 = 0x80000000u64 >> 2; // devices
@@ -22,12 +21,10 @@ pub unsafe fn init() {
     );
 }
 
-pub unsafe fn switch_pmp(prog: Progs) {
+pub unsafe fn switch_pmp(prog: Prog) {
     let mut pmpcfg0 = Pmpcfg::new();
-    match prog {
-        Progs::User1 => pmpcfg0.set_rwx(2),
-        Progs::User2 => pmpcfg0.set_rwx(3),
-    }
+    let prog_index = prog as usize + 2; // device and kernel offset
+    pmpcfg0.set_rwx(prog_index);
     write_machine_reg!(pmpcfg0.to_u64() => "pmpcfg0");
 }
 

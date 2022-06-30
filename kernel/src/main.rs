@@ -17,6 +17,5 @@ fn _shutdown() {}
 unsafe extern "C" fn kernel_setup() {
     setup::setup();
     // switch to user mode (configured in mstatus) and jump to address in mepc CSR -> main().
-    user_progs::switch_prog(user_progs::Progs::User1);
-    core::arch::asm!("mret");
+    user_progs::start_prog(user_progs::Prog::User1);
 }

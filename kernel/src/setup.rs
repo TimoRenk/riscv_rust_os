@@ -1,8 +1,5 @@
-pub use core::arch::asm;
-
 use crate::hardware::binary_struct::BinaryStruct;
-use crate::user_progs::Progs;
-use crate::{asm, hardware, user_progs};
+use crate::{asm, hardware};
 use riscv_utils::*;
 
 static mut SETUP: bool = false;
