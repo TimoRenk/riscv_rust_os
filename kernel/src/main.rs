@@ -5,18 +5,13 @@
 mod asm;
 mod exception_handler;
 mod hardware;
+mod panic_handler;
 mod setup;
 mod system_calls;
 mod user_progs;
 
 //todo implement shutdown
 fn _shutdown() {}
-
-//todo!
-#[panic_handler]
-fn panic(_info: &core::panic::PanicInfo) -> ! {
-    loop {}
-}
 
 #[no_mangle]
 unsafe extern "C" fn kernel_setup() {

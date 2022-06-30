@@ -34,6 +34,11 @@ where
         UART.print_char(ascii);
     }
 }
+
+pub unsafe fn get_uart() -> &'static mut UART {
+    &mut UART
+}
+
 fn to_single_digits<T, const DIGITS: usize>(number: T) -> [u8; DIGITS]
 where
     T: BinaryOperations + MaxDigits<DIGITS> + PartialEq + Rem<Output = T> + Div<Output = T> + Copy,
@@ -54,7 +59,7 @@ static mut UART: UART = UART {
     register: MemoryMapping::new(UART_BASE_ADDR),
 };
 
-struct UART {
+pub struct UART {
     register: MemoryMapping<'static, UartRegister>,
 }
 
@@ -69,6 +74,15 @@ impl UART {
         let register = self.register.get();
         while !register.5.is_set(0) {}
         register.0.get() as char
+    }
+}
+
+impl core::fmt::Write for UART {
+    fn write_str(&mut self, s: &str) -> core::fmt::Result {
+        for c in s.chars() {
+            self.print_char(c as u8);
+        }
+        Ok(())
     }
 }
 
