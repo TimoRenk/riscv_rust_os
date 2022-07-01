@@ -49,6 +49,7 @@ UART
 - use si ni
 - use gdb-multiarch!
 - x/100x $sp
+- -exec p/x $mepc
 
 readelf -a user_1 | less
 

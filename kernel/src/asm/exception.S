@@ -38,13 +38,13 @@ exception:
         sd t5, 232(sp)
         sd t6, 240(sp)
 
-        mv s1, sp
+        mv a7, sp
         la sp, _stack_end
 
         // call the C trap handler in trap.c
         call exception_handler
 
-        mv sp, s1
+        mv sp, a7
 
         // restore registers.
         ld ra, 0(sp)

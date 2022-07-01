@@ -13,7 +13,7 @@ PHDRS
 
 SECTIONS
 {
-  . = 0x80000000;
+  . = 0x80100000;
   .text : {
     . = ALIGN(16);
     *(.text.init) *(.text .text.*)

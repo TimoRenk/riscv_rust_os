@@ -44,7 +44,10 @@ pub unsafe fn syscall(number: u64, param_0: u64, param_1: u64) {
             user_prog::increment_mepc();
         }
         SysCall::Exit => exit(),
-        SysCall::Yield => sys_yield(),
+        SysCall::Yield => {
+            user_prog::increment_mepc();
+            sys_yield();
+        }
     }
 }
 
@@ -75,9 +78,5 @@ unsafe fn exit() {
 
 unsafe fn sys_yield() {
     let next = user_prog::next();
-    if !user_prog::is_started(next) {
-        user_prog::start_prog(next);
-    }
-    user_prog::switch_prog(next);
-    user_prog::increment_mepc();
+    user_prog::switch_or_start(next);
 }

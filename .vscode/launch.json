@@ -36,8 +36,18 @@
                     "ignoreFailures": false
                 },
                 {
+                    "description": "Load user 1 symbols",
+                    "text": "add-symbol-file ./target/riscv64gc-unknown-none-elf/debug/user_1 0x80100000",
+                    "ignoreFailures": false
+                },
+                {
                     "description": "Restore user 2",
                     "text": "restore ./target/riscv64gc-unknown-none-elf/debug/user_2.bin binary 0x80200000",
+                    "ignoreFailures": false
+                },
+                {
+                    "description": "Load user 2 symbols",
+                    "text": "add-symbol-file ./target/riscv64gc-unknown-none-elf/debug/user_2 0x80200000",
                     "ignoreFailures": false
                 }
             ],

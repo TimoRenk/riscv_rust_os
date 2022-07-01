@@ -21,13 +21,6 @@ pub unsafe fn setup() {
     let mstatus = mstatus.get();
     write_machine_reg!(mstatus => "mstatus");
 
-    // enable software interrupts (ecall) in M mode.
-    let mie: u64;
-    read_machine_reg!("mie" => mie);
-    let mut mie = BinaryStruct::from(mie);
-    mie.write_register_entry(MIE_MSIE);
-    write_machine_reg!(mie.get() => "mie");
-
     // set the machine-mode trap handler.
     let trap_handler = asm::exception as u64;
     // disable paging for now.
@@ -38,4 +31,13 @@ pub unsafe fn setup() {
     );
     // configure Physical Memory Protection to give user mode access to all of physical memory.
     hardware::pmp::init();
+    hardware::clint::init_timer();
+
+    // enable software interrupts (ecall) in M mode. enable timer interrupts.
+    let mie: u64;
+    read_machine_reg!("mie" => mie);
+    let mut mie = BinaryStruct::from(mie);
+    mie.write_register_entry(MIE_MSIE);
+    mie.write_register_entry(MIE_MTIE);
+    write_machine_reg!(mie.get() => "mie");
 }

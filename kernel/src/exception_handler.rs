@@ -1,6 +1,6 @@
 use crate::{
-    hardware::{binary_struct::BinaryStruct, memory_mapping::MemoryMapping},
-    user_prog::{self},
+    hardware::{binary_struct::BinaryStruct, clint, memory_mapping::MemoryMapping},
+    user_prog,
 };
 
 use super::system_calls;
@@ -16,8 +16,13 @@ unsafe extern "C" fn exception_handler() {
     if interrupt {
         mcause.at(63, false);
         match mcause.get() {
+            7 => {
+                let next = user_prog::get();
+                user_prog::switch_or_start(next);
+                clint::set_time_cmp();
+            }
             _ => {
-                panic!("Interrupt occurred: TODO");
+                panic!("Unsupported Interrupt with code: {}", mcause.get());
             }
         }
     } else {
@@ -27,7 +32,18 @@ unsafe extern "C" fn exception_handler() {
                 let mtval: u64;
                 read_machine_reg!("mtval" => mtval);
                 panic!(
-                    "Instruction access fault in user prog: {:?}, mepc: {}, mtval: {}",
+                    "Instruction access fault in user prog: {:?}, mepc: 0x{:x}, mtval: 0x{:x}",
+                    user_prog::get(),
+                    mepc,
+                    mtval
+                );
+            }
+            5 => {
+                // Load access fault
+                let mtval: u64;
+                read_machine_reg!("mtval" => mtval);
+                panic!(
+                    "Load access fault in user prog: {:?}, mepc: 0x{:x}, mtval: 0x{:x}",
                     user_prog::get(),
                     mepc,
                     mtval

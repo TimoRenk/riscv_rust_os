@@ -5,12 +5,15 @@ use user_shared::*;
 
 #[no_mangle]
 extern "C" fn main() {
-    for i in 0..10000000 {
+    let mut i = 0;
+    sys::print("\n1: current number is: ");
+    while i != 15000000 {
         if i % 1000000 == 0 {
-            sys::print("\n1: current number is: ");
-            sys::print_num(i);
-            sys::sys_yield();
+            sys::print_num(i / 1000000);
+            sys::print_char(' ');
         }
+        i += 1;
     }
+
     sys::exit();
 }
