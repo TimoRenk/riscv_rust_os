@@ -47,14 +47,14 @@ macro_rules! read_machine_reg {
 #[macro_export]
 macro_rules! write_machine_reg {
     ($($data:ident => $register:literal), +) => {
-        $(let $data: u64 = $data;) +
+        $(let $data: usize = $data;) +
         core::arch::asm!(
             $(concat!("csrw ", $register, ", {}")), +,
             $(in(reg) $data), +
         )
     };
     ($data:expr => $register:literal) => {
-        let data: u64 = $data;
+        let data: usize = $data;
         core::arch::asm!(concat!("csrw ", $register, ", {}"), in(reg) data)
     };
 }

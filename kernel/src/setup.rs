@@ -10,7 +10,7 @@ pub unsafe fn setup() {
     }
     SETUP = true;
     // set M Previous Privilege mode to User so mret returns to user mode.
-    let mstatus: u64;
+    let mstatus: usize;
     read_machine_reg!("mstatus" => mstatus);
     let mut mstatus = BinaryStruct::from(mstatus);
     mstatus.write_register_entry(MSTATUS_MPP_U.0);
@@ -22,9 +22,9 @@ pub unsafe fn setup() {
     write_machine_reg!(mstatus => "mstatus");
 
     // set the machine-mode trap handler.
-    let trap_handler = asm::exception as u64;
+    let trap_handler = asm::exception as usize;
     // disable paging for now.
-    let paging = 0;
+    let paging = 0usize;
     write_machine_reg!(
         trap_handler => "mtvec",
         paging => "satp"
@@ -34,7 +34,7 @@ pub unsafe fn setup() {
     // init timer interrupt.
     hardware::clint::init();
     // enable software interrupts (ecall) in M mode. enable timer interrupts.
-    let mie: u64;
+    let mie: usize;
     read_machine_reg!("mie" => mie);
     let mut mie = BinaryStruct::from(mie);
     mie.write_register_entry(MIE_MSIE);

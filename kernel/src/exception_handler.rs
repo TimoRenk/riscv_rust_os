@@ -9,7 +9,7 @@ use riscv_utils::*;
 #[no_mangle]
 unsafe extern "C" fn exception_handler() {
     let user_prog::ProgReg { mepc, sp } = user_prog::save_prog();
-    let mcause: u64;
+    let mcause: usize;
     read_machine_reg!("mcause" => mcause);
     let mut mcause = BinaryStruct::from(mcause);
     let interrupt = mcause.is_set(63);
@@ -22,7 +22,7 @@ unsafe extern "C" fn exception_handler() {
     user_prog::restore_prog();
 }
 
-unsafe fn handle_interrupt(mcause: u64) {
+unsafe fn handle_interrupt(mcause: usize) {
     match mcause {
         7 => {
             // Timer interrupt
@@ -39,11 +39,11 @@ unsafe fn handle_interrupt(mcause: u64) {
     }
 }
 
-unsafe fn handle_exception(mcause: u64, mepc: u64, sp: u64) {
+unsafe fn handle_exception(mcause: usize, mepc: usize, sp: usize) {
     match mcause {
         1 => {
             // Instruction access fault
-            let mtval: u64;
+            let mtval: usize;
             read_machine_reg!("mtval" => mtval);
             panic!(
                 "Instruction access fault in user prog: {:?}, mepc: 0x{:x}, mtval: 0x{:x}",
@@ -77,4 +77,4 @@ unsafe fn handle_exception(mcause: u64, mepc: u64, sp: u64) {
         }
     }
 }
-type Stack = [u64; 32];
+type Stack = [usize; 32];

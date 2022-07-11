@@ -6,13 +6,13 @@ use crate::user_prog::{self};
 
 macro_rules! syscall_matching {
     ($number:ident: $($syscall:expr), +) => {
-        $(if $number == $syscall as u64 {
+        $(if $number == $syscall as usize {
             return $syscall;
         }) +
     };
 }
 
-fn syscall_from(number: u64) -> SysCall {
+fn syscall_from(number: usize) -> SysCall {
     syscall_matching!(
         number: SysCall::PrintString,
         SysCall::PrintChar,
@@ -24,7 +24,7 @@ fn syscall_from(number: u64) -> SysCall {
     panic!("Illegal syscall: {}", number);
 }
 
-pub unsafe fn syscall(number: u64, param_0: u64, param_1: u64) {
+pub unsafe fn syscall(number: usize, param_0: usize, param_1: usize) {
     match syscall_from(number) {
         SysCall::PrintString => {
             print_string(param_0, param_1);
@@ -51,7 +51,7 @@ pub unsafe fn syscall(number: u64, param_0: u64, param_1: u64) {
     }
 }
 
-unsafe fn print_string(str_ptr: u64, size: u64) {
+unsafe fn print_string(str_ptr: usize, size: usize) {
     let mut str_ptr = str_ptr as *const u8;
     for _ in 0..size {
         let char = MemoryMapping::<u8>::new(str_ptr as usize).read();
@@ -60,7 +60,7 @@ unsafe fn print_string(str_ptr: u64, size: u64) {
     }
 }
 
-unsafe fn print_char(char: u64) {
+unsafe fn print_char(char: usize) {
     uart::print_char(char as u8 as char);
 }
 
@@ -68,7 +68,7 @@ unsafe fn get_char() -> char {
     uart::get_char()
 }
 
-unsafe fn print_num(number: u64) {
+unsafe fn print_num(number: usize) {
     uart::print_num(number);
 }
 

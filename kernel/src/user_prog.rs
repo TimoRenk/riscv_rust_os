@@ -17,11 +17,11 @@ pub unsafe fn start_prog(prog: Prog) {
     match prog {
         Prog::User1 => {
             switch(prog);
-            mepc = 0x80100000u64;
+            mepc = 0x80100000;
         }
         Prog::User2 => {
             switch(prog);
-            mepc = 0x80200000u64;
+            mepc = 0x80200000;
         }
     }
     riscv_utils::write_machine_reg!(mepc => "mepc");
@@ -47,13 +47,13 @@ fn switch(prog: Prog) {
 }
 /// The user prog sp has to be stored in a7!
 pub fn save_prog() -> ProgReg {
-    let mepc: u64;
-    let sp: u64;
+    let mepc: usize;
+    let sp: usize;
     unsafe {
         read_function_reg!("a7" => sp);
         read_machine_reg!("mepc" => mepc);
     }
-    if mepc < 0x80100000u64 {
+    if mepc < 0x80100000usize {
         panic!("Interrupt in exception");
     }
     let prog_reg = ProgReg { sp, mepc };
@@ -111,6 +111,6 @@ fn write_prog_reg(reg: ProgReg) {
 
 #[derive(Clone, Copy)]
 pub struct ProgReg {
-    pub sp: u64,
-    pub mepc: u64,
+    pub sp: usize,
+    pub mepc: usize,
 }

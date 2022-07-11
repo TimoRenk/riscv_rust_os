@@ -70,7 +70,7 @@ pub trait BinaryOperations {
 
 impl BinaryOperations for u8 {
     fn bit_size() -> usize {
-        8
+        u8::BITS as usize
     }
     fn one() -> Self {
         1
@@ -97,7 +97,7 @@ impl BinaryOperations for u8 {
 pub trait MaxDigits<const DIGITS: usize> {
     fn max_digits() -> [u8; DIGITS];
 }
-impl MaxDigits<20> for u64 {
+impl MaxDigits<20> for usize {
     fn max_digits() -> [u8; 20] {
         [0; 20]
     }
@@ -105,7 +105,34 @@ impl MaxDigits<20> for u64 {
 
 impl BinaryOperations for u64 {
     fn bit_size() -> usize {
-        64
+        u64::BITS as usize
+    }
+    fn one() -> Self {
+        1
+    }
+    fn zero() -> Self {
+        0
+    }
+    fn inverse(self) -> Self {
+        !self
+    }
+
+    fn from(data: usize) -> Self {
+        data as Self
+    }
+
+    fn ten() -> Self {
+        10
+    }
+
+    fn into_u8(self) -> u8 {
+        self as u8
+    }
+}
+
+impl BinaryOperations for usize {
+    fn bit_size() -> usize {
+        u64::BITS as usize
     }
     fn one() -> Self {
         1
