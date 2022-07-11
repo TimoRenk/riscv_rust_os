@@ -54,7 +54,7 @@ pub unsafe fn syscall(number: u64, param_0: u64, param_1: u64) {
 unsafe fn print_string(str_ptr: u64, size: u64) {
     let mut str_ptr = str_ptr as *const u8;
     for _ in 0..size {
-        let char = *MemoryMapping::<u8>::new(str_ptr as usize).get();
+        let char = MemoryMapping::<u8>::new(str_ptr as usize).read();
         uart::print_char(char as char);
         str_ptr = str_ptr.add(1);
     }

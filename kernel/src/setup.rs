@@ -31,8 +31,8 @@ pub unsafe fn setup() {
     );
     // configure Physical Memory Protection to give user mode access to all of physical memory.
     hardware::pmp::init();
-    hardware::clint::init_timer();
-
+    // init timer interrupt.
+    hardware::clint::init();
     // enable software interrupts (ecall) in M mode. enable timer interrupts.
     let mie: u64;
     read_machine_reg!("mie" => mie);
