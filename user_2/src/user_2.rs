@@ -7,7 +7,7 @@ use user_shared::*;
 extern "C" fn main() {
     for i in 0..9000000 {
         if i % 1000000 == 0 {
-            sys::print("\n  2: current number is: ");
+            sys::print("\n        ");
             sys::print_num(i / 1000000);
         }
     }

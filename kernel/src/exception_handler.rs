@@ -7,25 +7,26 @@ use super::system_calls;
 use riscv_utils::*;
 
 #[no_mangle]
-unsafe extern "C" fn exception_handler(mepc: usize, mcause: usize, sp: usize) {
+unsafe extern "C" fn exception_handler(mepc: usize, mcause: usize, sp: usize) -> usize {
     user_prog::save_prog(mepc, sp);
     let mut mcause = BinaryStruct::from(mcause);
     let interrupt = mcause.is_set(63);
     if interrupt {
         mcause.at(63, false);
+        crate::print!("I");
         handle_interrupt(mcause.get());
     } else {
         handle_exception(mcause.get(), mepc, sp);
     }
     let sp = user_prog::restore_prog();
-    write_function_reg!(sp=> "a7");
+    return sp;
 }
 
 unsafe fn handle_interrupt(mcause: usize) {
     match mcause {
         7 => {
             // Timer interrupt
-            let next = user_prog::get();
+            let next = user_prog::next();
             user_prog::switch_or_start(next);
             clint::set_time_cmp();
         }
@@ -64,11 +65,14 @@ unsafe fn handle_exception(mcause: usize, mepc: usize, sp: usize) {
         }
         8 => {
             // Ecall from user-mode
-            let stack: Stack = MemoryMapping::new(sp as usize).read();
-            let number = stack[16];
-            let param_0 = stack[9];
-            let param_1 = stack[10];
-            system_calls::syscall(number, param_0, param_1);
+            let mut mem_stack = MemoryMapping::new(sp as usize);
+            let mut stack: Stack = mem_stack.read();
+            let number = stack[16]; // a7
+            let param_0 = stack[9]; // a0
+            let param_1 = stack[10]; // a1
+            let ret_val = system_calls::syscall(number, param_0, param_1);
+            stack[9] = ret_val;
+            mem_stack.write(stack);
         }
         _ => {
             // Unsupported exception

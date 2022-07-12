@@ -46,7 +46,7 @@ exception:
         // call the C trap handler in trap.c
         call exception_handler
 
-        mv sp, a7
+        mv sp, a0
 
         // restore registers.
         ld ra, 0(sp)
@@ -58,7 +58,7 @@ exception:
         ld t2, 48(sp)
         ld s0, 56(sp)
         ld s1, 64(sp)
-        // ld a0, 72(sp) // nope, it's the return value...
+        ld a0, 72(sp)
         ld a1, 80(sp)
         ld a2, 88(sp)
         ld a3, 96(sp)

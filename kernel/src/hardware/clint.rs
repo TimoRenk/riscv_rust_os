@@ -1,6 +1,6 @@
 use super::memory_mapping::MemoryMapping;
 
-const TIMER_DURATION: u64 = 5000; //00000
+const TIMER_DURATION: u64 = 10000000; //10000000
 const MTIMECMP_ADDR: usize = 0x0200_4000;
 const MTIME_ADDR: usize = 0x0200_BFF8;
 

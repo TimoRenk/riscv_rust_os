@@ -24,7 +24,7 @@ fn syscall_from(number: usize) -> SysCall {
     panic!("Illegal syscall: {}", number);
 }
 
-pub unsafe fn syscall(number: usize, param_0: usize, param_1: usize) {
+pub unsafe fn syscall(number: usize, param_0: usize, param_1: usize) -> usize {
     match syscall_from(number) {
         SysCall::PrintString => {
             print_string(param_0, param_1);
@@ -35,9 +35,9 @@ pub unsafe fn syscall(number: usize, param_0: usize, param_1: usize) {
             user_prog::increment_mepc();
         }
         SysCall::GetChar => {
-            let return_value = get_char() as u64;
-            write_function_reg!(return_value => "a0");
+            let char = get_char() as usize;
             user_prog::increment_mepc();
+            return char;
         }
         SysCall::PrintNum => {
             print_num(param_0);
@@ -49,6 +49,7 @@ pub unsafe fn syscall(number: usize, param_0: usize, param_1: usize) {
             sys_yield();
         }
     }
+    return 0;
 }
 
 unsafe fn print_string(str_ptr: usize, size: usize) {
