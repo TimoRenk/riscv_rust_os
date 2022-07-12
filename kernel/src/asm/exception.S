@@ -38,7 +38,9 @@ exception:
         sd t5, 232(sp)
         sd t6, 240(sp)
 
-        mv a7, sp
+        csrr a0, mepc
+        csrr a1, mcause
+        mv a2, sp
         la sp, _stack_end
 
         // call the C trap handler in trap.c

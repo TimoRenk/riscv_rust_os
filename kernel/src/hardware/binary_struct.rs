@@ -39,9 +39,6 @@ where
         let (bit, set) = register_entry;
         self.at(bit, set)
     }
-    pub fn write(&mut self, data: T) {
-        self.0 = data;
-    }
     pub fn get(&self) -> T {
         self.0
     }

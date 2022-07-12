@@ -7,10 +7,8 @@ use super::system_calls;
 use riscv_utils::*;
 
 #[no_mangle]
-unsafe extern "C" fn exception_handler() {
-    let user_prog::ProgReg { mepc, sp } = user_prog::save_prog();
-    let mcause: usize;
-    read_machine_reg!("mcause" => mcause);
+unsafe extern "C" fn exception_handler(mepc: usize, mcause: usize, sp: usize) {
+    user_prog::save_prog(mepc, sp);
     let mut mcause = BinaryStruct::from(mcause);
     let interrupt = mcause.is_set(63);
     if interrupt {
@@ -19,7 +17,8 @@ unsafe extern "C" fn exception_handler() {
     } else {
         handle_exception(mcause.get(), mepc, sp);
     }
-    user_prog::restore_prog();
+    let sp = user_prog::restore_prog();
+    write_function_reg!(sp=> "a7");
 }
 
 unsafe fn handle_interrupt(mcause: usize) {
@@ -54,7 +53,7 @@ unsafe fn handle_exception(mcause: usize, mepc: usize, sp: usize) {
         }
         5 => {
             // Load access fault
-            let mtval: u64;
+            let mtval: usize;
             read_machine_reg!("mtval" => mtval);
             panic!(
                 "Load access fault in user prog: {:?}, mepc: 0x{:x}, mtval: 0x{:x}",

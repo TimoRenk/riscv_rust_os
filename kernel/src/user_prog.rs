@@ -1,6 +1,4 @@
-use core::fmt::Write;
-
-use crate::hardware::{clint, pmp::switch_pmp, uart};
+use crate::hardware::{clint, pmp::switch_pmp};
 use riscv_utils::*;
 
 #[derive(Clone, Copy, Debug)]
@@ -25,7 +23,7 @@ pub unsafe fn start_prog(prog: Prog) {
         }
     }
     riscv_utils::write_machine_reg!(mepc => "mepc");
-    write!(uart::get_uart(), "\n\n## Starting {:?} ##\n", get()).ok();
+    crate::println!("\n\n## Starting {:?} ##", get());
     clint::set_time_cmp();
     core::arch::asm!("mret");
 }
@@ -46,13 +44,7 @@ fn switch(prog: Prog) {
     }
 }
 /// The user prog sp has to be stored in a7!
-pub fn save_prog() -> ProgReg {
-    let mepc: usize;
-    let sp: usize;
-    unsafe {
-        read_function_reg!("a7" => sp);
-        read_machine_reg!("mepc" => mepc);
-    }
+pub fn save_prog(mepc: usize, sp: usize) -> ProgReg {
     if mepc < 0x80100000usize {
         panic!("Interrupt in exception");
     }
@@ -60,13 +52,13 @@ pub fn save_prog() -> ProgReg {
     write_prog_reg(prog_reg);
     return prog_reg;
 }
-/// The user prog sp is going to be stored in a7 and needs to be copied to sp!
-pub fn restore_prog() {
+/// Returns the stack pointer to restore it.
+pub fn restore_prog() -> usize {
     if let Some(ProgReg { sp, mepc }) = read_prog_reg() {
         unsafe {
             write_machine_reg!(mepc => "mepc");
-            write_function_reg!(sp => "a7");
         }
+        return sp;
     } else {
         panic!("Program register from user prog: {:?} not found", get());
     }
