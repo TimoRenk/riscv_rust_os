@@ -1,5 +1,6 @@
 use crate::{
-    hardware::{binary_struct::BinaryStruct, clint, memory_mapping::MemoryMapping},
+    hardware::{binary_struct::BinaryStruct, clint, memory_mapping::MemoryMapping, plic, uart},
+    macros::print,
     user_prog,
 };
 
@@ -13,7 +14,6 @@ unsafe extern "C" fn exception_handler(mepc: usize, mcause: usize, sp: usize) ->
     let interrupt = mcause.is_set(63);
     if interrupt {
         mcause.at(63, false);
-        crate::print!("I");
         handle_interrupt(mcause.get());
     } else {
         handle_exception(mcause.get(), mepc, sp);
@@ -32,9 +32,24 @@ unsafe fn handle_interrupt(mcause: usize) {
         }
         11 => {
             // Extern interrupt
+            let irq = plic::read_claim();
+            match irq {
+                plic::IRQ::Uart => {
+                    if uart::get_interrupt_cause() == uart::UartInterrupt::ReceivedDataRdy {
+                        let char = uart::read_char();
+                        print!("{}", char);
+                    } else {
+                        panic!(
+                            "Unsupported UART interrupt with code: {:?}",
+                            uart::get_interrupt_cause()
+                        );
+                    }
+                }
+            }
+            plic::write_complete(irq);
         }
         _ => {
-            panic!("Unsupported Interrupt with code: {}", mcause);
+            panic!("Unsupported interrupt with code: {}", mcause);
         }
     }
 }

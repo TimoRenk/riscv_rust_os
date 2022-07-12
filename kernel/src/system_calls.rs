@@ -4,16 +4,8 @@ use riscv_utils::*;
 use super::hardware::{memory_mapping::MemoryMapping, uart};
 use crate::user_prog::{self};
 
-macro_rules! syscall_matching {
-    ($number:ident: $($syscall:expr), +) => {
-        $(if $number == $syscall as usize {
-            return $syscall;
-        }) +
-    };
-}
-
 fn syscall_from(number: usize) -> SysCall {
-    syscall_matching!(
+    crate::enum_matching!(
         number: SysCall::PrintString,
         SysCall::PrintChar,
         SysCall::GetChar,

@@ -1,6 +1,6 @@
 use core::ops::{Div, Rem};
 
-use super::binary_struct::{BinaryOperations, Byte, MaxDigits};
+use super::binary_struct::{BinaryOperations, BinaryStruct, Byte, MaxDigits};
 use super::memory_mapping::MemoryMapping;
 
 const BASE_ADDR: usize = 0x1000_0000;
@@ -8,6 +8,47 @@ const BASE_ADDR: usize = 0x1000_0000;
 static mut UART: UART = UART {
     reg: UartRegister::new(BASE_ADDR),
 };
+
+pub unsafe fn init() {
+    let mem_ier = &mut UART.reg.ier_dlm;
+    let mut ier = BinaryStruct::from(0);
+    ier.at(0, true); // receive interrupt
+    ier.at(1, false); // transmit interrupt
+    ier.at(2, false); // receiver line status interrupt
+    ier.at(3, false); // receiver transmit status interrupt
+    mem_ier.write(ier);
+}
+
+pub unsafe fn get_interrupt_cause() -> UartInterrupt {
+    let isr = UART.reg.isr_fcr.read();
+    let b0 = isr.is_set(0);
+    let b1 = isr.is_set(1);
+    let b2 = isr.is_set(2);
+    let b3 = isr.is_set(3);
+    if b0 {
+        return UartInterrupt::Error;
+    }
+    if b1 && b2 && !b3 {
+        return UartInterrupt::LineStatusReg;
+    }
+    if !b1 && b2 && !b3 {
+        return UartInterrupt::ReceivedDataRdy;
+    }
+    if !b1 && b2 && b3 {
+        return UartInterrupt::ReceivedDataTimeout;
+    }
+    if b1 && !b2 && !b3 {
+        return UartInterrupt::TransHoldRegEmpty;
+    }
+    if !b1 && !b2 && !b3 {
+        return UartInterrupt::ModemStatusReg;
+    }
+    return UartInterrupt::Error;
+}
+
+pub unsafe fn read_char() -> char {
+    UART.read_char()
+}
 
 //todo catch race condition?!
 pub unsafe fn print_str(str: &str) {
@@ -68,9 +109,9 @@ impl UART {
     fn print_char(&mut self, char: u8) {
         unsafe {
             loop {
-                let lsr = self.reg.5.read();
+                let lsr = self.reg.lsr.read();
                 if lsr.is_set(5) {
-                    self.reg.0.write(char);
+                    self.reg.rbr_thr_dll.write(char);
                     return;
                 }
             }
@@ -80,11 +121,17 @@ impl UART {
     fn get_char(&self) -> char {
         unsafe {
             loop {
-                let lsr = self.reg.5.read();
+                let lsr = self.reg.lsr.read();
                 if lsr.is_set(0) {
-                    return self.reg.0.read() as char;
+                    return self.reg.rbr_thr_dll.read() as char;
                 }
             }
+        }
+    }
+
+    fn read_char(&self) -> char {
+        unsafe {
+            return self.reg.rbr_thr_dll.read() as char;
         }
     }
 }
@@ -98,36 +145,53 @@ impl core::fmt::Write for UART {
     }
 }
 
-/// offset_0: RBR, THR | DLL
-/// offset_1: IER | DLM
-/// offset_2: IIR, FCR
-/// offset_3: LCR
-/// offset_4: MCR
-/// offset_5: LSR
-/// offset_6: MSR
-/// offset_7: SCR
-struct UartRegister(
-    MemoryMapping<u8>,
-    MemoryMapping<Byte>,
-    MemoryMapping<Byte>,
-    MemoryMapping<Byte>,
-    MemoryMapping<Byte>,
-    MemoryMapping<Byte>,
-    MemoryMapping<Byte>,
-    MemoryMapping<Byte>,
-);
+#[allow(dead_code)]
+struct UartRegister {
+    /// Receive Buffer Register, Transmit Holding Register | LSB of Divisor Latch when enabled.
+    rbr_thr_dll: MemoryMapping<u8>,
+    /// N/A, Interrupt Enable Register | MSB of Divisor Latch when enabled.
+    ier_dlm: MemoryMapping<Byte>,
+    /// Interrupt Status Register, FIFO control Register
+    isr_fcr: MemoryMapping<Byte>,
+    /// N/A, Line Control Register
+    lcr: MemoryMapping<Byte>,
+    /// N/A, Modem Control Register
+    mcr: MemoryMapping<Byte>,
+    /// Line Status Register, N/A
+    lsr: MemoryMapping<Byte>,
+    /// Modem Status Register, N/A
+    msr: MemoryMapping<Byte>,
+    /// Scratchpad Register Read, Scratchpad Register Write
+    scr: MemoryMapping<Byte>,
+}
 impl UartRegister {
     const fn new(addr: usize) -> Self {
-        let offset_0 = MemoryMapping::new(addr);
-        let offset_1 = MemoryMapping::new(addr + 1);
-        let offset_2 = MemoryMapping::new(addr + 2);
-        let offset_3 = MemoryMapping::new(addr + 3);
-        let offset_4 = MemoryMapping::new(addr + 4);
-        let offset_5 = MemoryMapping::new(addr + 5);
-        let offset_6 = MemoryMapping::new(addr + 6);
-        let offset_7 = MemoryMapping::new(addr + 7);
-        UartRegister(
-            offset_0, offset_1, offset_2, offset_3, offset_4, offset_5, offset_6, offset_7,
-        )
+        let rhr_thr_dll = MemoryMapping::new(addr);
+        let ier_dlm = MemoryMapping::new(addr + 1);
+        let isr_fcr = MemoryMapping::new(addr + 2);
+        let lcr = MemoryMapping::new(addr + 3);
+        let mcr = MemoryMapping::new(addr + 4);
+        let lsr = MemoryMapping::new(addr + 5);
+        let msr = MemoryMapping::new(addr + 6);
+        let scr = MemoryMapping::new(addr + 7);
+        UartRegister {
+            rbr_thr_dll: rhr_thr_dll,
+            ier_dlm,
+            isr_fcr,
+            lcr,
+            mcr,
+            lsr,
+            msr,
+            scr,
+        }
     }
+}
+#[derive(Debug, PartialEq)]
+pub enum UartInterrupt {
+    LineStatusReg,
+    ReceivedDataRdy,
+    ReceivedDataTimeout,
+    TransHoldRegEmpty,
+    ModemStatusReg,
+    Error,
 }

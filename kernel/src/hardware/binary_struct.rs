@@ -153,3 +153,29 @@ impl BinaryOperations for usize {
         self as u8
     }
 }
+impl BinaryOperations for u32 {
+    fn bit_size() -> usize {
+        u32::BITS as usize
+    }
+    fn one() -> Self {
+        1
+    }
+    fn zero() -> Self {
+        0
+    }
+    fn inverse(self) -> Self {
+        !self
+    }
+
+    fn from(data: usize) -> Self {
+        data as Self
+    }
+
+    fn ten() -> Self {
+        10
+    }
+
+    fn into_u8(self) -> u8 {
+        self as u8
+    }
+}

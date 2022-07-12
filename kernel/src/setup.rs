@@ -29,15 +29,19 @@ pub unsafe fn setup() {
         trap_handler => "mtvec",
         paging => "satp"
     );
-    // configure Physical Memory Protection to give user mode access to all of physical memory.
-    hardware::pmp::init();
     // init timer interrupt.
     hardware::clint::init();
+    // init hardware interrupt.
+    hardware::plic::init();
+    hardware::uart::init();
+    // configure Physical Memory Protection to give user mode access to all of physical memory.
+    hardware::pmp::init();
     // enable software interrupts (ecall) in M mode. enable timer interrupts.
     let mie: usize;
     read_machine_reg!("mie" => mie);
     let mut mie = BinaryStruct::from(mie);
     mie.write_register_entry(MIE_MSIE);
     mie.write_register_entry(MIE_MTIE);
+    mie.write_register_entry(MIE_MEIE);
     write_machine_reg!(mie.get() => "mie");
 }

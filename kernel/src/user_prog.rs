@@ -43,10 +43,14 @@ fn switch(prog: Prog) {
         switch_pmp(prog);
     }
 }
-/// The user prog sp has to be stored in a7!
+/// Safes the user prog.
 pub fn save_prog(mepc: usize, sp: usize) -> ProgReg {
     if mepc < 0x80100000usize {
-        panic!("Interrupt in exception");
+        let mcause: usize;
+        unsafe {
+            read_machine_reg!("mcause" => mcause);
+        }
+        panic!("Interrupt in exception, mepc: {}, mcause: {}", mepc, mcause);
     }
     let prog_reg = ProgReg { sp, mepc };
     write_prog_reg(prog_reg);
