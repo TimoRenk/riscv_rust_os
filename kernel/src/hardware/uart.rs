@@ -1,12 +1,17 @@
 use core::ops::{Div, Rem};
 
+use crate::scheduler::Prog;
+
 use super::binary_struct::{BinaryOperations, BinaryStruct, Byte, MaxDigits};
 use super::memory_mapping::MemoryMapping;
 
 const BASE_ADDR: usize = 0x1000_0000;
 
+static mut READ_CHAR: Option<char> = None;
+
 static mut UART: UART = UART {
     reg: UartRegister::new(BASE_ADDR),
+    open_user_prog: None,
 };
 
 pub unsafe fn init() {
@@ -19,35 +24,42 @@ pub unsafe fn init() {
     mem_ier.write(ier);
 }
 
-pub unsafe fn get_interrupt_cause() -> UartInterrupt {
+pub unsafe fn get_interrupt_cause() -> Interrupt {
     let isr = UART.reg.isr_fcr.read();
     let b0 = isr.is_set(0);
     let b1 = isr.is_set(1);
     let b2 = isr.is_set(2);
     let b3 = isr.is_set(3);
     if b0 {
-        return UartInterrupt::Error;
+        return Interrupt::Error;
     }
     if b1 && b2 && !b3 {
-        return UartInterrupt::LineStatusReg;
+        return Interrupt::LineStatusReg;
     }
     if !b1 && b2 && !b3 {
-        return UartInterrupt::ReceivedDataRdy;
+        return Interrupt::ReceivedDataRdy;
     }
     if !b1 && b2 && b3 {
-        return UartInterrupt::ReceivedDataTimeout;
+        return Interrupt::ReceivedDataTimeout;
     }
     if b1 && !b2 && !b3 {
-        return UartInterrupt::TransHoldRegEmpty;
+        return Interrupt::TransHoldRegEmpty;
     }
     if !b1 && !b2 && !b3 {
-        return UartInterrupt::ModemStatusReg;
+        return Interrupt::ModemStatusReg;
     }
-    return UartInterrupt::Error;
+    return Interrupt::Error;
 }
 
-pub unsafe fn read_char() -> char {
-    UART.read_char()
+/// Only call if an interrupt happened. Returns the blocking user prog.
+pub unsafe fn read_char() -> Option<Prog> {
+    READ_CHAR = Some(UART.read_char());
+    UART.open_user_prog
+}
+pub unsafe fn get_char() -> Option<char> {
+    let char = READ_CHAR;
+    READ_CHAR = None;
+    return char;
 }
 
 //todo catch race condition?!
@@ -57,8 +69,27 @@ pub unsafe fn print_str(str: &str) {
 pub unsafe fn print_char(char: char) {
     UART.print_char(char as u8);
 }
-pub unsafe fn get_char() -> char {
-    UART.get_char()
+/// Opens 'read' and returns true if successful or already blocked by the user_prog.
+/// False if blocked by a different user_prog.
+pub unsafe fn open(user_prog: Prog) -> bool {
+    if let Some(open) = UART.open_user_prog {
+        return open == user_prog;
+    } else {
+        UART.open_user_prog = Some(user_prog);
+        READ_CHAR = None;
+        return true;
+    }
+}
+/// Closes 'read' if it is blocked by user_prog. Returns true when successful.
+pub unsafe fn close(user_prog: Prog) -> bool {
+    if Some(user_prog) == UART.open_user_prog {
+        UART.open_user_prog = None;
+        return true;
+    }
+    return false;
+}
+pub unsafe fn is_open(user_prog: Prog) -> bool {
+    return UART.open_user_prog == Some(user_prog);
 }
 pub unsafe fn print_num<T, const DIGITS: usize>(number: T)
 where
@@ -103,6 +134,7 @@ where
 
 pub struct UART {
     reg: UartRegister,
+    open_user_prog: Option<Prog>,
 }
 
 impl UART {
@@ -113,17 +145,6 @@ impl UART {
                 if lsr.is_set(5) {
                     self.reg.rbr_thr_dll.write(char);
                     return;
-                }
-            }
-        }
-    }
-
-    fn get_char(&self) -> char {
-        unsafe {
-            loop {
-                let lsr = self.reg.lsr.read();
-                if lsr.is_set(0) {
-                    return self.reg.rbr_thr_dll.read() as char;
                 }
             }
         }
@@ -187,7 +208,7 @@ impl UartRegister {
     }
 }
 #[derive(Debug, PartialEq)]
-pub enum UartInterrupt {
+pub enum Interrupt {
     LineStatusReg,
     ReceivedDataRdy,
     ReceivedDataTimeout,

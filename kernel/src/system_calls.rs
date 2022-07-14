@@ -11,37 +11,57 @@ fn syscall_from(number: usize) -> SysCall {
         SysCall::GetChar,
         SysCall::PrintNum,
         SysCall::Yield,
-        SysCall::Exit
+        SysCall::Exit,
+        SysCall::UartOpen,
+        SysCall::UartClose
     );
     panic!("Illegal syscall: {}", number);
 }
 
-pub unsafe fn syscall(number: usize, param_0: usize, param_1: usize) -> usize {
+pub unsafe fn syscall(number: usize, param_0: usize, param_1: usize) -> Option<usize> {
     match syscall_from(number) {
         SysCall::PrintString => {
             print_string(param_0, param_1);
             scheduler::cur().increment_mepc();
+            return None;
         }
         SysCall::PrintChar => {
             uart::print_char(param_0 as u8 as char);
             scheduler::cur().increment_mepc();
+            return None;
         }
         SysCall::GetChar => {
-            let char = get_char() as usize;
-            scheduler::cur().increment_mepc();
+            let char = get_char();
+            if char.is_some() {
+                scheduler::cur().increment_mepc();
+            }
             return char;
         }
         SysCall::PrintNum => {
             uart::print_num(param_0);
             scheduler::cur().increment_mepc();
+            return None;
         }
-        SysCall::Exit => exit(),
+        SysCall::Exit => {
+            exit();
+            return None;
+        }
         SysCall::Yield => {
             scheduler::cur().increment_mepc();
             sys_yield();
+            return None;
+        }
+        SysCall::UartOpen => {
+            let open = uart::open(scheduler::cur());
+            scheduler::cur().increment_mepc();
+            return Some(open as usize);
+        }
+        SysCall::UartClose => {
+            let close = uart::close(scheduler::cur());
+            scheduler::cur().increment_mepc();
+            return Some(close as usize);
         }
     }
-    return 0;
 }
 
 unsafe fn print_string(str_ptr: usize, size: usize) {
@@ -53,20 +73,23 @@ unsafe fn print_string(str_ptr: usize, size: usize) {
     }
 }
 
-unsafe fn print_char(char: usize) {
-    uart::print_char(char as u8 as char);
-}
-
-unsafe fn get_char() -> char {
-    uart::get_char()
-}
-
-unsafe fn print_num(number: usize) {
-    uart::print_num(number);
+/// Returns true if user prog holds uart and blocks the process. Returns false otherwise.
+unsafe fn get_char() -> Option<usize> {
+    let user_prog = scheduler::cur();
+    if !uart::is_open(user_prog) {
+        return Some(0);
+    }
+    if let Some(char) = uart::get_char() {
+        return Some(char as usize);
+    }
+    scheduler::cur().set_blocked(scheduler::Reason::Uart);
+    sys_yield();
+    return None;
 }
 
 unsafe fn exit() {
     let cur = scheduler::cur();
+    uart::close(cur);
     let prog_info = cur.prog_info();
     scheduler::end_prog(scheduler::cur());
     scheduler::init_prog(prog_info);

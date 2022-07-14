@@ -1,6 +1,7 @@
 use crate::{
-    hardware::{binary_struct::BinaryStruct, clint, memory_mapping::MemoryMapping, plic, uart},
-    macros::print,
+    hardware::{
+        binary_struct::BinaryStruct, clint, memory_mapping::MemoryMapping, plic, stack::Stack, uart,
+    },
     scheduler,
 };
 
@@ -37,9 +38,12 @@ unsafe fn handle_interrupt(mcause: usize) {
             let irq = plic::read_claim();
             match irq {
                 plic::IRQ::Uart => {
-                    if uart::get_interrupt_cause() == uart::UartInterrupt::ReceivedDataRdy {
-                        let char = uart::read_char();
-                        print!("{}", char);
+                    if uart::get_interrupt_cause() == uart::Interrupt::ReceivedDataRdy {
+                        if let Some(open) = uart::read_char() {
+                            if open.is_blocked(scheduler::Reason::Uart) {
+                                open.set_rdy();
+                            }
+                        }
                     } else {
                         panic!(
                             "Unsupported UART interrupt with code: {:?}",
@@ -82,14 +86,15 @@ unsafe fn handle_exception(mcause: usize, mepc: usize, sp: usize) {
         }
         8 => {
             // Ecall from user-mode
-            let mut mem_stack = MemoryMapping::new(sp as usize);
+            let mut mem_stack = MemoryMapping::new(sp);
             let mut stack: Stack = mem_stack.read();
-            let number = stack[16]; // a7
-            let param_0 = stack[9]; // a0
-            let param_1 = stack[10]; // a1
-            let ret_val = system_calls::syscall(number, param_0, param_1);
-            stack[9] = ret_val;
-            mem_stack.write(stack);
+            let number = stack.a7();
+            let param_0 = stack.a0();
+            let param_1 = stack.a1();
+            if let Some(ret) = system_calls::syscall(number, param_0, param_1) {
+                stack.set_ret(ret);
+                mem_stack.write(stack);
+            }
         }
         _ => {
             // Unsupported exception
@@ -97,4 +102,3 @@ unsafe fn handle_exception(mcause: usize, mepc: usize, sp: usize) {
         }
     }
 }
-type Stack = [usize; 32];

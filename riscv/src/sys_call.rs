@@ -3,6 +3,8 @@ pub enum SysCall {
     PrintChar,
     PrintNum,
     GetChar,
+    UartOpen,
+    UartClose,
     Yield = 23,
     Exit = 42,
 }

@@ -22,9 +22,17 @@ pub fn print_char(char: char) {
     }
 }
 
-pub fn get_char() -> char {
-    unsafe { system_call(SysCall::GetChar, 0, 0) as u8 as char }
+/// Requires uart to be open. Returns 'None' otherwise.
+pub fn get_char() -> Option<char> {
+    unsafe {
+        let res = system_call(SysCall::GetChar, 0, 0);
+        if res == 0 {
+            return None;
+        }
+        return Some(res as u8 as char);
+    }
 }
+
 pub fn print(string: &str) {
     if string.is_empty() {
         return;
@@ -55,5 +63,15 @@ pub fn exit() {
 pub fn sys_yield() {
     unsafe {
         system_call(SysCall::Yield, 0, 0);
+    }
+}
+pub fn uart_open() -> bool {
+    unsafe {
+        return system_call(SysCall::UartOpen, 0, 0) != 0;
+    }
+}
+pub fn uart_close() -> bool {
+    unsafe {
+        return system_call(SysCall::UartClose, 0, 0) != 0;
     }
 }

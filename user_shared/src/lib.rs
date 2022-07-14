@@ -2,4 +2,4 @@
 
 pub mod asm;
 pub mod panic_handler;
-pub mod system_calls;
+pub mod sys_call;

@@ -139,29 +139,21 @@ impl Prog {
             self.id, self.idx
         );
     }
-    pub fn is_rdy(&self) -> bool {
-        unsafe { self.get().state == State::Rdy }
-    }
-    pub fn set_rdy(&mut self) {
+    pub fn set_rdy(&self) {
         unsafe {
             self.get().state = State::Rdy;
         }
     }
     /// If blocked, returns the reason. Otherwise None.
-    pub fn is_blocked(&self) -> Option<Reason> {
-        unsafe {
-            if let State::Blocked(reason) = self.get().state {
-                return Some(reason);
-            }
-        }
-        return None;
+    pub fn is_blocked(&self, reason: Reason) -> bool {
+        unsafe { self.get().state == State::Blocked(reason) }
     }
-    pub fn set_blocked(&mut self, reason: Reason) {
+    pub fn set_blocked(&self, reason: Reason) {
         unsafe {
             self.get().state = State::Blocked(reason);
         }
     }
-    pub fn increment_mepc(&mut self) {
+    pub fn increment_mepc(&self) {
         unsafe {
             self.get().mepc += 4;
         }
