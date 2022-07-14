@@ -3,5 +3,6 @@ pub mod clint;
 pub mod memory_mapping;
 pub mod plic;
 pub mod pmp;
+pub mod ring_buffer;
 pub mod stack;
 pub mod uart;

@@ -4,10 +4,11 @@ use crate::scheduler::Prog;
 
 use super::binary_struct::{BinaryOperations, BinaryStruct, Byte, MaxDigits};
 use super::memory_mapping::MemoryMapping;
+use super::ring_buffer::{self, RingBuffer, BUFFER_SIZE};
 
 const BASE_ADDR: usize = 0x1000_0000;
 
-static mut READ_CHAR: Option<char> = None;
+static mut READ_CHAR: RingBuffer<char> = ring_buffer::new(['X'; BUFFER_SIZE]);
 
 static mut UART: UART = UART {
     reg: UartRegister::new(BASE_ADDR),
@@ -53,12 +54,11 @@ pub unsafe fn get_interrupt_cause() -> Interrupt {
 
 /// Only call if an interrupt happened. Returns the blocking user prog.
 pub unsafe fn read_char() -> Option<Prog> {
-    READ_CHAR = Some(UART.read_char());
+    READ_CHAR.write(UART.read_char());
     UART.open_user_prog
 }
 pub unsafe fn get_char() -> Option<char> {
-    let char = READ_CHAR;
-    READ_CHAR = None;
+    let char = READ_CHAR.read();
     return char;
 }
 
@@ -76,7 +76,7 @@ pub unsafe fn open(user_prog: Prog) -> bool {
         return open == user_prog;
     } else {
         UART.open_user_prog = Some(user_prog);
-        READ_CHAR = None;
+        READ_CHAR.clear();
         return true;
     }
 }

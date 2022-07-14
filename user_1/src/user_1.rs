@@ -11,7 +11,7 @@ extern "C" fn main() {
     if sys::uart_close() {
         sys::print("\nu1: Is not allowed to close uart!");
     }
-    for i in 0..3000000 {
+    for i in 0..10000000 {
         if i % 1000000 == 0 {
             sys::print("\n");
             sys::print_num(i / 1000000);
@@ -19,7 +19,7 @@ extern "C" fn main() {
     }
     while !sys::uart_open() {}
     sys::print("\nuart is open!");
-    for i in 3000000..4000000 {
+    for i in 10000000..20000000 {
         if i % 1000000 == 0 {
             sys::print("\n");
             sys::print_num(i / 1000000);
@@ -28,9 +28,11 @@ extern "C" fn main() {
     if !sys::uart_open() {
         sys::print("\nu1: Uart should be open!");
     }
-    if let Some(char) = sys::get_char() {
-        sys::print("\n");
-        sys::print_char(char);
+    for _ in 0..7 {
+        if let Some(char) = sys::get_char() {
+            sys::print("\n");
+            sys::print_char(char);
+        }
     }
     if !sys::uart_close() {
         sys::print("\nu1: should be allowed to close uart!");
