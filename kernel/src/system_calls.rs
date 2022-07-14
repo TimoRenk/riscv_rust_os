@@ -2,7 +2,7 @@ pub use core::arch::asm;
 use riscv_utils::*;
 
 use super::hardware::{memory_mapping::MemoryMapping, uart};
-use crate::user_prog::{self};
+use crate::scheduler::{self};
 
 fn syscall_from(number: usize) -> SysCall {
     crate::enum_matching!(
@@ -20,24 +20,24 @@ pub unsafe fn syscall(number: usize, param_0: usize, param_1: usize) -> usize {
     match syscall_from(number) {
         SysCall::PrintString => {
             print_string(param_0, param_1);
-            user_prog::increment_mepc();
+            scheduler::cur().increment_mepc();
         }
         SysCall::PrintChar => {
-            print_char(param_0);
-            user_prog::increment_mepc();
+            uart::print_char(param_0 as u8 as char);
+            scheduler::cur().increment_mepc();
         }
         SysCall::GetChar => {
             let char = get_char() as usize;
-            user_prog::increment_mepc();
+            scheduler::cur().increment_mepc();
             return char;
         }
         SysCall::PrintNum => {
-            print_num(param_0);
-            user_prog::increment_mepc();
+            uart::print_num(param_0);
+            scheduler::cur().increment_mepc();
         }
         SysCall::Exit => exit(),
         SysCall::Yield => {
-            user_prog::increment_mepc();
+            scheduler::cur().increment_mepc();
             sys_yield();
         }
     }
@@ -66,10 +66,15 @@ unsafe fn print_num(number: usize) {
 }
 
 unsafe fn exit() {
-    user_prog::start_prog(user_prog::get());
+    let cur = scheduler::cur();
+    let prog_info = cur.prog_info();
+    scheduler::end_prog(scheduler::cur());
+    scheduler::init_prog(prog_info);
+    sys_yield();
 }
 
 unsafe fn sys_yield() {
-    let next = user_prog::next();
-    user_prog::switch_or_start(next);
+    let next =
+        scheduler::next().expect("No next user prog for system yield. Idle task not implemented");
+    scheduler::switch(next);
 }

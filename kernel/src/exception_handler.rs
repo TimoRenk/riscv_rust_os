@@ -1,7 +1,7 @@
 use crate::{
     hardware::{binary_struct::BinaryStruct, clint, memory_mapping::MemoryMapping, plic, uart},
     macros::print,
-    user_prog,
+    scheduler,
 };
 
 use super::system_calls;
@@ -9,7 +9,7 @@ use riscv_utils::*;
 
 #[no_mangle]
 unsafe extern "C" fn exception_handler(mepc: usize, mcause: usize, sp: usize) -> usize {
-    user_prog::save_prog(mepc, sp);
+    scheduler::save_cur_prog(mepc, sp);
     let mut mcause = BinaryStruct::from(mcause);
     let interrupt = mcause.is_set(63);
     if interrupt {
@@ -18,7 +18,7 @@ unsafe extern "C" fn exception_handler(mepc: usize, mcause: usize, sp: usize) ->
     } else {
         handle_exception(mcause.get(), mepc, sp);
     }
-    let sp = user_prog::restore_prog();
+    let sp = scheduler::restore_cur_prog();
     return sp;
 }
 
@@ -26,8 +26,10 @@ unsafe fn handle_interrupt(mcause: usize) {
     match mcause {
         7 => {
             // Timer interrupt
-            let next = user_prog::next();
-            user_prog::switch_or_start(next);
+            let next = scheduler::next();
+            scheduler::switch(
+                next.expect("No available next user prog. Idle task not implemented"),
+            );
             clint::set_time_cmp();
         }
         11 => {
@@ -62,7 +64,7 @@ unsafe fn handle_exception(mcause: usize, mepc: usize, sp: usize) {
             read_machine_reg!("mtval" => mtval);
             panic!(
                 "Instruction access fault in user prog: {:?}, mepc: 0x{:x}, mtval: 0x{:x}",
-                user_prog::get(),
+                scheduler::cur().id(),
                 mepc,
                 mtval
             );
@@ -73,7 +75,7 @@ unsafe fn handle_exception(mcause: usize, mepc: usize, sp: usize) {
             read_machine_reg!("mtval" => mtval);
             panic!(
                 "Load access fault in user prog: {:?}, mepc: 0x{:x}, mtval: 0x{:x}",
-                user_prog::get(),
+                scheduler::cur().id(),
                 mepc,
                 mtval
             );
