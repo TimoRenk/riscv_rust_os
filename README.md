@@ -21,6 +21,12 @@ Os written in Rust
 UART
 <https://www.lammertbies.nl/comm/info/serial-uart>
 
+Check riscv reader for paper info for register infos in first two lectures
+
+## Plic
+
+<https://github.com/riscv/riscv-plic-spec/blob/master/riscv-plic.adoc>
+
 ## Questions
 
 - Why use mret in setup
