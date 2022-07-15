@@ -3,7 +3,7 @@ use core::fmt::Display;
 use crate::macros::print;
 
 /// Actual size is 1 less due to the head and tail pointer.
-pub const BUFFER_SIZE: usize = 7;
+pub const BUFFER_SIZE: usize = 21;
 
 pub const fn new<T>(buffer: [T; BUFFER_SIZE]) -> RingBuffer<T> {
     RingBuffer {

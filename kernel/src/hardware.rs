@@ -5,4 +5,5 @@ pub mod plic;
 pub mod pmp;
 pub mod ring_buffer;
 pub mod stack;
+pub mod sync;
 pub mod uart;

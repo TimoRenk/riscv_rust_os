@@ -1,7 +1,5 @@
 use crate::{
-    hardware::{
-        binary_struct::BinaryStruct, clint, memory_mapping::MemoryMapping, plic, stack::Stack, uart,
-    },
+    hardware::{binary_struct::BinaryStruct, clint, plic, stack::Stack, uart},
     scheduler,
 };
 
@@ -39,9 +37,15 @@ unsafe fn handle_interrupt(mcause: usize) {
             match irq {
                 plic::IRQ::Uart => {
                     if uart::get_interrupt_cause() == uart::Interrupt::ReceivedDataRdy {
-                        if let Some(open) = uart::read_char() {
-                            if open.is_blocked(scheduler::Reason::Uart) {
-                                open.set_rdy();
+                        if let Some(uart_prog) = uart::read_char() {
+                            if uart_prog.is_blocked(scheduler::Reason::Uart) {
+                                let char = uart::get_char()
+                                    .expect("Char should be present as it was just read");
+                                let mut stack = Stack::new(uart_prog.sp());
+                                stack.set_ret(char as usize);
+                                stack.write();
+                                uart_prog.set_rdy();
+                                scheduler::switch(uart_prog);
                             }
                         }
                     } else {
@@ -86,14 +90,13 @@ unsafe fn handle_exception(mcause: usize, mepc: usize, sp: usize) {
         }
         8 => {
             // Ecall from user-mode
-            let mut mem_stack = MemoryMapping::new(sp);
-            let mut stack: Stack = mem_stack.read();
+            let mut stack = Stack::new(sp);
             let number = stack.a7();
             let param_0 = stack.a0();
             let param_1 = stack.a1();
             if let Some(ret) = system_calls::syscall(number, param_0, param_1) {
                 stack.set_ret(ret);
-                mem_stack.write(stack);
+                stack.write();
             }
         }
         _ => {

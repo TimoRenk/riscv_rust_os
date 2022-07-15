@@ -164,6 +164,9 @@ impl Prog {
     pub fn prog_info(&self) -> user_prog::Info {
         unsafe { self.get().info }
     }
+    pub fn sp(&self) -> usize {
+        unsafe { self.get().sp }
+    }
 }
 #[derive(PartialEq)]
 struct ProgData {

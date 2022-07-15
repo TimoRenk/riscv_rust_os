@@ -31,11 +31,8 @@ pub unsafe fn syscall(number: usize, param_0: usize, param_1: usize) -> Option<u
             return None;
         }
         SysCall::GetChar => {
-            let char = get_char();
-            if char.is_some() {
-                scheduler::cur().increment_mepc();
-            }
-            return char;
+            scheduler::cur().increment_mepc();
+            return get_char();
         }
         SysCall::PrintNum => {
             uart::print_num(param_0);

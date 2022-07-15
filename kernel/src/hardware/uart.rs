@@ -5,10 +5,12 @@ use crate::scheduler::Prog;
 use super::binary_struct::{BinaryOperations, BinaryStruct, Byte, MaxDigits};
 use super::memory_mapping::MemoryMapping;
 use super::ring_buffer::{self, RingBuffer, BUFFER_SIZE};
+use super::sync::Protected;
 
 const BASE_ADDR: usize = 0x1000_0000;
 
-static mut READ_CHAR: RingBuffer<char> = ring_buffer::new(['X'; BUFFER_SIZE]);
+static mut READ_CHAR: Protected<RingBuffer<char>> =
+    Protected::new(ring_buffer::new(['X'; BUFFER_SIZE]));
 
 static mut UART: UART = UART {
     reg: UartRegister::new(BASE_ADDR),
@@ -54,11 +56,16 @@ pub unsafe fn get_interrupt_cause() -> Interrupt {
 
 /// Only call if an interrupt happened. Returns the blocking user prog.
 pub unsafe fn read_char() -> Option<Prog> {
-    READ_CHAR.write(UART.read_char());
-    UART.open_user_prog
+    let char = UART.read_char();
+    if UART.open_user_prog.is_some() {
+        READ_CHAR.lock_and_get().write(char);
+        READ_CHAR.unlock();
+    }
+    return UART.open_user_prog;
 }
 pub unsafe fn get_char() -> Option<char> {
-    let char = READ_CHAR.read();
+    let char = READ_CHAR.lock_and_get().read();
+    READ_CHAR.unlock();
     return char;
 }
 
@@ -76,7 +83,8 @@ pub unsafe fn open(user_prog: Prog) -> bool {
         return open == user_prog;
     } else {
         UART.open_user_prog = Some(user_prog);
-        READ_CHAR.clear();
+        READ_CHAR.lock_and_get().clear();
+        READ_CHAR.unlock();
         return true;
     }
 }
