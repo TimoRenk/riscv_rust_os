@@ -2,6 +2,23 @@
 
 Os written in Rust
 
+## Install
+
+- rustup target install riscv64gc-unknown-none-elf
+
+### GDB
+
+gdb-multiarch/ riscv-elf-gdb
+
+#### Windows
+
+msys2: -> pacman -S mingw-w64-x86_64-toolchain
+
+### objcopy
+
+cargo install cargo-binutils
+rustup component add llvm-tools-preview
+
 ## RISC-V
 
 [Register]<https://en.wikichip.org/wiki/risc-v/registers>
