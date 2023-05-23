@@ -3,27 +3,26 @@
 mod sys_call;
 pub use sys_call::SysCall;
 
-type RegEnt = RegisterEntry;
 /// mstatus: machine status
 ///     mpp: the previous mode
 ///         u: User
 ///     mie: machine-mode interrupt enable
-pub const MSTATUS_MPP_U: (RegEnt, RegEnt) = ((11, false), (12, false));
-pub const MSTATUS_MIE: RegEnt = (3, true);
+pub const MSTATUS_MPP_U: (RegisterEntry, RegisterEntry) = ((11, false), (12, false));
+pub const MSTATUS_MIE: RegisterEntry = (3, true);
 /// mie: machine-mode interrupt
 ///     meie: external
 ///     mtie: timer
 ///     msie: software
-pub const MIE_MEIE: RegEnt = (11, true);
-pub const MIE_MTIE: RegEnt = (7, true);
-pub const MIE_MSIE: RegEnt = (3, true);
+pub const MIE_MEIE: RegisterEntry = (11, true);
+pub const MIE_MTIE: RegisterEntry = (7, true);
+pub const MIE_MSIE: RegisterEntry = (3, true);
 /// sie: supervisor interrupt enable
 ///     seie: external
 ///     stie: times
 ///     ssie: software
-pub const SIE_SEIE: RegEnt = (9, true);
-pub const SIE_STIE: RegEnt = (5, true);
-pub const SIE_SSIE: RegEnt = (1, true);
+pub const SIE_SEIE: RegisterEntry = (9, true);
+pub const SIE_STIE: RegisterEntry = (5, true);
+pub const SIE_SSIE: RegisterEntry = (1, true);
 
 pub type RegisterEntry = (usize, bool);
 

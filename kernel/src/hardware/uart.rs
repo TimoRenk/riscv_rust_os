@@ -1,8 +1,9 @@
+use core::fmt::Debug;
 use core::ops::{Div, Rem};
 
 use crate::scheduler::Prog;
 
-use super::binary_struct::{BinaryOperations, BinaryStruct, Byte, MaxDigits};
+use super::binary_struct::{BinaryStruct, Byte, MaxDigits};
 use super::memory_mapping::MemoryMapping;
 use super::ring_buffer::{self, RingBuffer, BUFFER_SIZE};
 use super::sync::Protected;
@@ -12,7 +13,7 @@ const BASE_ADDR: usize = 0x1000_0000;
 static mut READ_CHAR: Protected<RingBuffer<char>> =
     Protected::new(ring_buffer::new(['X'; BUFFER_SIZE]));
 
-static mut UART: UART = UART {
+static mut UART: Uart = Uart {
     reg: UartRegister::new(BASE_ADDR),
     open_user_prog: None,
 };
@@ -51,7 +52,7 @@ pub unsafe fn get_interrupt_cause() -> Interrupt {
     if !b1 && !b2 && !b3 {
         return Interrupt::ModemStatusReg;
     }
-    return Interrupt::Error;
+    Interrupt::Error
 }
 
 /// Only call if an interrupt happened. Returns the blocking user prog.
@@ -61,12 +62,12 @@ pub unsafe fn read_char() -> Option<Prog> {
         READ_CHAR.lock_and_get().write(char);
         READ_CHAR.unlock();
     }
-    return UART.open_user_prog;
+    UART.open_user_prog
 }
 pub unsafe fn get_char() -> Option<char> {
     let char = READ_CHAR.lock_and_get().read();
     READ_CHAR.unlock();
-    return char;
+    char
 }
 
 //todo catch race condition?!
@@ -81,12 +82,11 @@ pub unsafe fn print_char(char: char) {
 pub unsafe fn open(user_prog: Prog) -> bool {
     if let Some(open) = UART.open_user_prog {
         return open == user_prog;
-    } else {
-        UART.open_user_prog = Some(user_prog);
-        READ_CHAR.lock_and_get().clear();
-        READ_CHAR.unlock();
-        return true;
     }
+    UART.open_user_prog = Some(user_prog);
+    READ_CHAR.lock_and_get().clear();
+    READ_CHAR.unlock();
+    true
 }
 /// Closes 'read' if it is blocked by user_prog. Returns true when successful.
 pub unsafe fn close(user_prog: Prog) -> bool {
@@ -94,14 +94,20 @@ pub unsafe fn close(user_prog: Prog) -> bool {
         UART.open_user_prog = None;
         return true;
     }
-    return false;
+    false
 }
 pub unsafe fn is_open(user_prog: Prog) -> bool {
-    return UART.open_user_prog == Some(user_prog);
+    UART.open_user_prog == Some(user_prog)
 }
 pub unsafe fn print_num<T, const DIGITS: usize>(number: T)
 where
-    T: BinaryOperations + MaxDigits<DIGITS> + PartialEq + Rem<Output = T> + Div<Output = T> + Copy,
+    T: From<u8>
+        + MaxDigits<DIGITS>
+        + PartialEq
+        + Rem<Output = T>
+        + Div<Output = T>
+        + Copy
+        + TryInto<u8>,
 {
     let digits = to_single_digits(number);
 
@@ -121,31 +127,39 @@ where
     }
 }
 
-pub unsafe fn get_uart() -> &'static mut UART {
+pub unsafe fn get_uart() -> &'static mut Uart {
     &mut UART
 }
 
 fn to_single_digits<T, const DIGITS: usize>(number: T) -> [u8; DIGITS]
 where
-    T: BinaryOperations + MaxDigits<DIGITS> + PartialEq + Rem<Output = T> + Div<Output = T> + Copy,
+    T: From<u8>
+        + MaxDigits<DIGITS>
+        + PartialEq
+        + Rem<Output = T>
+        + Div<Output = T>
+        + Copy
+        + TryInto<u8>,
 {
     let mut digits = T::max_digits();
     let mut number = number;
     let mut index = digits.len() - 1;
-    while number != T::zero() {
-        digits[index] = (number % T::ten()).into_u8();
-        number = number / T::ten();
-        index = index - 1;
+    while number != T::from(0) {
+        digits[index] = (number % T::from(10))
+            .try_into()
+            .unwrap_or_else(|_| panic!("to_single_digits should always fit into u8!"));
+        number = number / T::from(10);
+        index -= 1;
     }
-    return digits;
+    digits
 }
 
-pub struct UART {
+pub struct Uart {
     reg: UartRegister,
     open_user_prog: Option<Prog>,
 }
 
-impl UART {
+impl Uart {
     fn print_char(&mut self, char: u8) {
         unsafe {
             loop {
@@ -159,13 +173,11 @@ impl UART {
     }
 
     fn read_char(&self) -> char {
-        unsafe {
-            return self.reg.rbr_thr_dll.read() as char;
-        }
+        unsafe { self.reg.rbr_thr_dll.read() as char }
     }
 }
 
-impl core::fmt::Write for UART {
+impl core::fmt::Write for Uart {
     fn write_str(&mut self, s: &str) -> core::fmt::Result {
         for c in s.chars() {
             self.print_char(c as u8);
@@ -195,7 +207,7 @@ struct UartRegister {
 }
 impl UartRegister {
     const fn new(addr: usize) -> Self {
-        let rhr_thr_dll = MemoryMapping::new(addr);
+        let rbr_thr_dll = MemoryMapping::new(addr);
         let ier_dlm = MemoryMapping::new(addr + 1);
         let isr_fcr = MemoryMapping::new(addr + 2);
         let lcr = MemoryMapping::new(addr + 3);
@@ -204,7 +216,7 @@ impl UartRegister {
         let msr = MemoryMapping::new(addr + 6);
         let scr = MemoryMapping::new(addr + 7);
         UartRegister {
-            rbr_thr_dll: rhr_thr_dll,
+            rbr_thr_dll,
             ier_dlm,
             isr_fcr,
             lcr,

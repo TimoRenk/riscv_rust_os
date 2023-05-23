@@ -35,7 +35,7 @@ unsafe fn handle_interrupt(mcause: usize) {
             // Extern interrupt
             let irq = plic::read_claim();
             match irq {
-                plic::IRQ::Uart => {
+                plic::Irq::Uart => {
                     if uart::get_interrupt_cause() == uart::Interrupt::ReceivedDataRdy {
                         if let Some(uart_prog) = uart::read_char() {
                             if uart_prog.is_blocked(scheduler::Reason::Uart) {

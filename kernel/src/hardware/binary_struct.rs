@@ -1,6 +1,8 @@
+use core::mem::size_of;
+use core::ops::Not;
 use core::{
     cmp::PartialOrd,
-    ops::{BitAnd, BitOr, Range, Shl},
+    ops::{BitAnd, BitOr, Shl},
 };
 use riscv_utils::RegisterEntry;
 
@@ -10,29 +12,24 @@ pub type Byte = BinaryStruct<u8>;
 pub struct BinaryStruct<T>(T);
 impl<T> BinaryStruct<T>
 where
-    T: BinaryOperations
-        + Shl<Output = T>
+    T: Shl<usize, Output = T>
         + PartialOrd
         + BitAnd<Output = T>
         + BitOr<Output = T>
-        + Copy,
-    Range<T>: Iterator<Item = T>,
+        + Not<Output = T>
+        + Copy
+        + From<u8>,
 {
     pub fn is_set(&self, bit: usize) -> bool {
-        if let Some(bit) = Self::transform_bit(bit) {
-            return self.0 & T::one() << bit != T::zero();
-        }
-        return false;
+        Self::assert_valid(bit);
+        self.0 & T::from(1u8) << bit != T::from(0u8)
     }
     pub fn at(&mut self, bit: usize, set: bool) {
-        let bit = match Self::transform_bit(bit) {
-            Some(bit) => bit,
-            None => return,
-        };
+        Self::assert_valid(bit);
         if set {
-            self.0 = self.0 | T::one() << bit;
+            self.0 = self.0 | T::from(1u8) << bit;
         } else {
-            self.0 = self.0 & (T::one() << bit).inverse();
+            self.0 = self.0 & !(T::from(1u8) << bit);
         }
     }
     pub fn write_register_entry(&mut self, register_entry: RegisterEntry) {
@@ -42,52 +39,14 @@ where
     pub fn get(&self) -> T {
         self.0
     }
-    fn transform_bit(bit: usize) -> Option<T> {
-        if bit >= T::bit_size() {
-            return None;
-        }
-        Some(T::from(bit))
+    /// Checks if the specified bit fits into the bit-size of T
+    fn assert_valid(bit: usize) {
+        assert!(bit <= size_of::<T>() * 8)
     }
 }
 impl<T> From<T> for BinaryStruct<T> {
     fn from(data: T) -> Self {
         BinaryStruct(data)
-    }
-}
-
-pub trait BinaryOperations {
-    fn bit_size() -> usize;
-    fn one() -> Self;
-    fn zero() -> Self;
-    fn ten() -> Self;
-    fn inverse(self) -> Self;
-    fn from(data: usize) -> Self;
-    fn into_u8(self) -> u8;
-}
-
-impl BinaryOperations for u8 {
-    fn bit_size() -> usize {
-        u8::BITS as usize
-    }
-    fn one() -> Self {
-        1
-    }
-    fn zero() -> Self {
-        0
-    }
-    fn inverse(self) -> Self {
-        !self
-    }
-    fn from(data: usize) -> Self {
-        data as Self
-    }
-
-    fn ten() -> Self {
-        10
-    }
-
-    fn into_u8(self) -> u8 {
-        self as u8
     }
 }
 
@@ -97,85 +56,5 @@ pub trait MaxDigits<const DIGITS: usize> {
 impl MaxDigits<20> for usize {
     fn max_digits() -> [u8; 20] {
         [0; 20]
-    }
-}
-
-impl BinaryOperations for u64 {
-    fn bit_size() -> usize {
-        u64::BITS as usize
-    }
-    fn one() -> Self {
-        1
-    }
-    fn zero() -> Self {
-        0
-    }
-    fn inverse(self) -> Self {
-        !self
-    }
-
-    fn from(data: usize) -> Self {
-        data as Self
-    }
-
-    fn ten() -> Self {
-        10
-    }
-
-    fn into_u8(self) -> u8 {
-        self as u8
-    }
-}
-
-impl BinaryOperations for usize {
-    fn bit_size() -> usize {
-        u64::BITS as usize
-    }
-    fn one() -> Self {
-        1
-    }
-    fn zero() -> Self {
-        0
-    }
-    fn inverse(self) -> Self {
-        !self
-    }
-
-    fn from(data: usize) -> Self {
-        data as Self
-    }
-
-    fn ten() -> Self {
-        10
-    }
-
-    fn into_u8(self) -> u8 {
-        self as u8
-    }
-}
-impl BinaryOperations for u32 {
-    fn bit_size() -> usize {
-        u32::BITS as usize
-    }
-    fn one() -> Self {
-        1
-    }
-    fn zero() -> Self {
-        0
-    }
-    fn inverse(self) -> Self {
-        !self
-    }
-
-    fn from(data: usize) -> Self {
-        data as Self
-    }
-
-    fn ten() -> Self {
-        10
-    }
-
-    fn into_u8(self) -> u8 {
-        self as u8
     }
 }
