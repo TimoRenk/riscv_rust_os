@@ -3,10 +3,11 @@
 .align 4
 .set REG_SIZE, 8
 exception:
-        // make room to save registers.
+        // Make room to save registers.
         addi sp, sp, -256
 
-        // save the registers.
+        // Save the registers.
+        // Infos on register https://en.wikichip.org/wiki/risc-v/registers
         sd ra, 0(sp)
         sd sp, 1*REG_SIZE(sp)
         sd gp, 2*REG_SIZE(sp)
@@ -44,12 +45,13 @@ exception:
         mv a2, sp
         la sp, _stack_end
 
-        // call the C trap handler in trap.c
+        // Call the C trap handler in exception_handler.rs
         call exception_handler
 
+        // Restore stackpointer, the stackpointer is returned from the exception_handler function
         mv sp, a0
 
-        // restore registers.
+        // Restore registers.
         ld ra, 0(sp)
         ld sp, 1*REG_SIZE(sp)
         ld gp, 2*REG_SIZE(sp)
@@ -84,5 +86,5 @@ exception:
 
         addi sp, sp, 256
 
-        // return to whatever we were doing in the kernel.
+        // Return to whatever we were doing in the kernel.
         mret
