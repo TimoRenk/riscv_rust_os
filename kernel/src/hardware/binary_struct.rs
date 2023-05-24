@@ -41,7 +41,7 @@ where
     }
     /// Checks if the specified bit fits into the bit-size of T
     fn assert_valid(bit: usize) {
-        assert!(bit <= size_of::<T>() * 8)
+        assert!(bit < size_of::<T>() * 8)
     }
 }
 impl<T> From<T> for BinaryStruct<T> {
