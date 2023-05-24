@@ -33,7 +33,7 @@ impl Pmpcfg {
     fn to_usize(&self) -> usize {
         let mut arr = [0; usize::BITS as usize / 8];
         for i in 0..self.0.len() {
-            arr[i] = self.0[i].get();
+            arr[i] = self.0[i].into_inner();
         }
         return usize::from_ne_bytes(arr);
     }

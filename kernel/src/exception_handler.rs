@@ -13,9 +13,9 @@ unsafe extern "C" fn exception_handler(mepc: usize, mcause: usize, sp: usize) ->
     let interrupt = mcause.is_set(63);
     if interrupt {
         mcause.at(63, false);
-        handle_interrupt(mcause.get());
+        handle_interrupt(mcause.into_inner());
     } else {
-        handle_exception(mcause.get(), mepc, sp);
+        handle_exception(mcause.into_inner(), mepc, sp);
     }
     let sp = scheduler::restore_cur_prog();
     return sp;

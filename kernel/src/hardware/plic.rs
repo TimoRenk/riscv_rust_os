@@ -44,7 +44,7 @@ pub unsafe fn init() {
     let (uart_idx, uart_bit) = group_idx_and_bit_pos(Irq::Uart);
     enable_c0[uart_idx].at(uart_bit, true);
     let enable_addr = get_enable_addr(uart_idx);
-    MemoryMapping::new(enable_addr).write(enable_c0[uart_idx].get());
+    MemoryMapping::new(enable_addr).write(enable_c0[uart_idx].into_inner());
     // Set thresholds for context.
     MemoryMapping::new(THRESHOLD_ADDR).write(0u32);
 }

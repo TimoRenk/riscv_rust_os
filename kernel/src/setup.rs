@@ -18,7 +18,7 @@ pub unsafe fn setup() {
 
     // enable machine-mode interrupts.
     mstatus.write_register_entry(MSTATUS_MIE);
-    let mstatus = mstatus.get();
+    let mstatus = mstatus.into_inner();
     write_machine_reg!(mstatus => "mstatus");
 
     // set the machine-mode trap handler.
@@ -43,5 +43,5 @@ pub unsafe fn setup() {
     mie.write_register_entry(MIE_MSIE);
     mie.write_register_entry(MIE_MTIE);
     mie.write_register_entry(MIE_MEIE);
-    write_machine_reg!(mie.get() => "mie");
+    write_machine_reg!(mie.into_inner() => "mie");
 }

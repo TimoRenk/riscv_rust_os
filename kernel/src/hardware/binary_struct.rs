@@ -36,7 +36,7 @@ where
         let (bit, set) = register_entry;
         self.at(bit, set)
     }
-    pub fn get(&self) -> T {
+    pub fn into_inner(self) -> T {
         self.0
     }
     /// Checks if the specified bit fits into the bit-size of T
@@ -44,6 +44,7 @@ where
         assert!(bit < size_of::<T>() * 8)
     }
 }
+
 impl<T> From<T> for BinaryStruct<T> {
     fn from(data: T) -> Self {
         BinaryStruct(data)
