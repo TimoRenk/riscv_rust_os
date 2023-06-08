@@ -1,2 +1,5 @@
 [build]
 target = "riscv64gc-unknown-none-elf"
+
+[target.riscv64gc-unknown-none-elf]
+runner = "qemu-system-riscv64 -nographic -machine virt -smp 1 -bios none -device loader,file=./target/riscv64gc-unknown-none-elf/debug/user_1,addr=80100000 -device loader,file=./target/riscv64gc-unknown-none-elf/debug/user_2,addr=80200000 -kernel"

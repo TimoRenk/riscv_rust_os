@@ -2,110 +2,34 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Debug riscv_rust_os",
+            "label": "Debug",
+            "hide": true,
             "type": "shell",
-            "command": "qemu-system-riscv64",
+            "command": "echo 'Waiting for the debugger..';qemu-system-riscv64 -nographic -machine virt -smp 1 -bios none -device loader,file=./target/riscv64gc-unknown-none-elf/debug/user_1,addr=80100000 -device loader,file=./target/riscv64gc-unknown-none-elf/debug/user_2,addr=80200000 -kernel ./target/riscv64gc-unknown-none-elf/debug/kernel -s -S",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
-            "args": [
-                "-nographic",
-                "-machine",
-                "virt",
-                "-smp",
-                "1",
-                "-bios",
-                "none",
-                "-kernel",
-                "./target/riscv64gc-unknown-none-elf/debug/riscv_rust_os.bin",
-                "-s",
-                "-S"
-            ],
             "dependsOn": [
-                "Build riscv_rust_os"
+                "Build"
             ],
             "dependsOrder": "sequence",
-            "problemMatcher": [
-                {
-                    "pattern": [
-                        {
-                            "regexp": ".",
-                            "file": 1,
-                            "line": 1,
-                            "column": 1,
-                            "message": 1
-                        }
-                    ]
+            "isBackground": true,
+            "problemMatcher": {
+                "owner": "custom",
+                "pattern": [
+                    {
+                        "regexp": "",
+                        "file": 1,
+                        "location": 2,
+                        "message": 3
+                    }
+                ],
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": ".*",
+                    "endsPattern": ".*"
                 }
-            ],
-            "group": {
-                "kind": "test",
-                "isDefault": true
             }
-        },
-        {
-            "type": "shell",
-            "command": "cargo",
-            "problemMatcher": [],
-            "label": "Build riscv_rust_os",
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "args": [
-                "objcopy",
-                "--bin",
-                "riscv_rust_os",
-                "--",
-                "-O",
-                "binary",
-                "./target/riscv64gc-unknown-none-elf/debug/riscv_rust_os.bin"
-            ]
-        },
-        {
-            "type": "shell",
-            "command": "cargo",
-            "problemMatcher": [],
-            "label": "Build user_1",
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "args": [
-                "objcopy",
-                "--bin",
-                "user_1",
-                "--",
-                "-O",
-                "binary",
-                "./target/riscv64gc-unknown-none-elf/debug/user_1.bin"
-            ]
-        },
-        {
-            "type": "shell",
-            "command": "cargo",
-            "problemMatcher": [],
-            "label": "Build user_2",
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "args": [
-                "objcopy",
-                "--bin",
-                "user_2",
-                "--",
-                "-O",
-                "binary",
-                "./target/riscv64gc-unknown-none-elf/debug/user_2.bin"
-            ]
-        },
-        {
-            "label": "Build user binaries",
-            "dependsOn": [
-                "Build user_1",
-                "Build user_2",
-            ],
-            "problemMatcher": [
-                "$rustc"
-            ]
         },
         {
             "type": "cargo",
@@ -130,7 +54,24 @@
         {
             "label": "Terminate All",
             "command": "echo ${input:terminate}",
-            "type": "shell"
+            "type": "shell",
+            "problemMatcher": []
+        },
+        {
+            "type": "cargo",
+            "command": "run",
+            "problemMatcher": [
+                "$rustc",
+                "$rust-panic"
+            ],
+            "label": "Run",
+            "args": [
+                "--bin",
+                "kernel"
+            ],
+            "dependsOn": [
+                "Build"
+            ]
         }
     ],
     "inputs": [
