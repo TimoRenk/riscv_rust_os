@@ -1,8 +1,9 @@
 #![no_std]
-#![allow(dead_code)]
+#![allow(unused)]
 mod sys_call;
 pub use sys_call::SysCall;
 
+pub type RegisterEntry = (usize, bool);
 ///`mpp`: sets previous privilege mode to user-mode so modules run only in U-mode after setup
 pub const MSTATUS_MPP_U: (RegisterEntry, RegisterEntry) = ((11, false), (12, false));
 ///`mie`: machine-mode interrupt enable
@@ -22,7 +23,18 @@ pub const SIE_STIE: RegisterEntry = (5, true);
 /// `ssie`: software supervisor-mode interrupt enable
 pub const SIE_SSIE: RegisterEntry = (1, true);
 
-pub type RegisterEntry = (usize, bool);
+/// mcause value for a timer interrupt.
+pub const MCAUSE_INTERRUPT_TIMER: usize = 7;
+/// mcause value for an extern interrupt, like the plic.
+pub const MCAUSE_INTERRUPT_EXTERN: usize = 11;
+/// mcause value for an instruction access fault exception.
+pub const MCAUSE_EXCEPTION_IAF: usize = 1;
+/// mcause value for an illegal instruction exception.
+pub const MCAUSE_EXCEPTION_II: usize = 2;
+/// mcause value for an load access fault exception.
+pub const MCAUSE_EXCEPTION_LAF: usize = 5;
+/// mcause value for an ecall exception.
+pub const MCAUSE_EXCEPTION_ECALL: usize = 8;
 
 /// A convenient macro to avoid writing assembly code for machine register.
 ///
@@ -58,6 +70,7 @@ macro_rules! read_machine_reg {
         )
     }
 }
+
 /// A convenient macro to avoid writing assembly code for machine register.
 ///
 /// ## Example
@@ -125,7 +138,7 @@ macro_rules! read_function_reg {
         )
     }
 }
-#[macro_export]
+
 /// A convenient macro to avoid writing assembly code for machine register.
 /// The order seamed to matter at some point if multiple register where accessed.
 /// If problems occur, write in function parameter order.
@@ -144,6 +157,7 @@ macro_rules! read_function_reg {
 /// ```
 /// core::arch::asm!("mv a7, {}", in(reg) syscall);
 /// ```
+#[macro_export]
 macro_rules! write_function_reg {
     ($($data:ident => $register:literal), +) => {
         core::arch::asm!(

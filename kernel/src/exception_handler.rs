@@ -22,16 +22,14 @@ unsafe extern "C" fn exception_handler(mepc: usize, mcause: usize, sp: usize) ->
 
 unsafe fn handle_interrupt(mcause: usize) {
     match mcause {
-        7 => {
-            // Timer interrupt
+        MCAUSE_INTERRUPT_TIMER => {
             let next = scheduler::next();
             scheduler::switch(
                 next.expect("No available next user prog. Idle task not implemented"),
             );
             clint::set_time_cmp();
         }
-        11 => {
-            // Extern interrupt
+        MCAUSE_INTERRUPT_EXTERN => {
             let irq = plic::read_claim();
             match irq {
                 plic::Irq::Uart => {
@@ -65,8 +63,7 @@ unsafe fn handle_interrupt(mcause: usize) {
 
 unsafe fn handle_exception(mcause: usize, mepc: usize, sp: usize) {
     match mcause {
-        1 => {
-            // Instruction access fault
+        MCAUSE_EXCEPTION_IAF => {
             let mtval: usize;
             read_machine_reg!("mtval" => mtval);
             panic!(
@@ -76,8 +73,17 @@ unsafe fn handle_exception(mcause: usize, mepc: usize, sp: usize) {
                 mtval
             );
         }
-        5 => {
-            // Load access fault
+        MCAUSE_EXCEPTION_II => {
+            let mtval: usize;
+            read_machine_reg!("mtval" => mtval);
+            panic!(
+                "Illegal instruction in user prog: {:?}, mepc: 0x{:x}, mtval: 0x{:x}",
+                scheduler::cur().id(),
+                mepc,
+                mtval
+            );
+        }
+        MCAUSE_EXCEPTION_LAF => {
             let mtval: usize;
             read_machine_reg!("mtval" => mtval);
             panic!(
@@ -87,8 +93,7 @@ unsafe fn handle_exception(mcause: usize, mepc: usize, sp: usize) {
                 mtval
             );
         }
-        8 => {
-            // Ecall from user-mode
+        MCAUSE_EXCEPTION_ECALL => {
             let mut stack = Stack::new(sp);
             let number = stack.a7();
             let param_0 = stack.a0();

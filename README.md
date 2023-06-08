@@ -48,11 +48,56 @@ rustup component add llvm-tools-preview
 
 ## RISC-V
 
-[Register]<https://en.wikichip.org/wiki/risc-v/registers>
+>[!info] [RISC-V Manual](<https://github.com/riscv/riscv-isa-manual/#readme>)
+>It contains:
+>
+>- mcause
+>- mstatus
+>- mepc
+
+[Register](https://en.wikichip.org/wiki/risc-v/registers)
 <https://github.com/riscv-non-isa/riscv-sbi-doc/blob/master/riscv-sbi.adoc#system-reset-extension-eid-0x53525354-srst>
-<https://github.com/riscv/riscv-isa-manual/#readme>
 <https://github.com/rust-embedded/riscv>
-[Register]
+
+### mcause
+
+| Interrupt | Exception Code | Description                    |
+| --------- |:-------------- |:------------------------------ |
+| 1         | 0              | _Reserved_                     |
+| 1         | 1              | Supervisor software interrupt  |
+| 1         | 2              | _Reserved_                     |
+| 1         | 3              | Machine software interrupt     |
+| 1         | 4              | _Reserved_                     |
+| 1         | 5              | Supervisor timer interrupt     |
+| 1         | 6              | _Reserved_                     |
+| 1         | 7              | Machine timer interrupt        |
+| 1         | 8              | _Reserved_                     |
+| 1         | 9              | Supervisor external interrupt  |
+| 1         | 10             | _Reserved_                     |
+| 1         | 11             | Machine external interrupt     |
+| 1         | 12-15          | _Reserved_                     |
+| 1         | ≥16            | _Designated for platform use_  |
+| 0         | 0              | Instruction address misaligned |
+| 0         | 1              | Instruction access fault       |
+| 0         | 2              | Illegal instruction            |
+| 0         | 3              | Breakpoint                     |
+| 0         | 4              | Load address misaligned        |
+| 0         | 5              | Load access fault              |
+| 0         | 6              | Store/AMO address misaligned   |
+| 0         | 7              | Store/AMO access fault         |
+| 0         | 8              | Environment call from U-mode   |
+| 0         | 9              | Environment call from S-mode   |
+| 0         | 10             | _Reserved_                     |
+| 0         | 11             | Environment call from M-mode   |
+| 0         | 12             | Instruction page fault         |
+| 0         | 13             | Load page fault                |
+| 0         | 14             | _Reserved_                     |
+| 0         | 15             | Store/AMO page fault           |
+| 0         | 16-23          | _Reserved_                     |
+| 0         | 24-31          | _Designated for custom use_    |
+| 0         | 32-47          | _Reserved_                     |
+| 0         | 48-63          | _Designated for custom use_    |
+| 0         | ≥64            | _Reserved_                     |
 
 ## UART
 
