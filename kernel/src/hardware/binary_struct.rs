@@ -20,6 +20,7 @@ where
         + Copy
         + From<u8>,
 {
+    const SIZE: usize = size_of::<T>() * 8;
     pub fn is_set(&self, bit: usize) -> bool {
         Self::assert_valid(bit);
         self.0 & T::from(1u8) << bit != T::from(0u8)
@@ -41,7 +42,12 @@ where
     }
     /// Checks if the specified bit fits into the bit-size of T
     fn assert_valid(bit: usize) {
-        assert!(bit < size_of::<T>() * 8)
+        assert!(
+            bit < Self::SIZE,
+            "Accessed a binary struct outside its size '{}'. Accessed '{}'",
+            Self::SIZE,
+            bit
+        );
     }
 }
 
@@ -54,6 +60,7 @@ impl<T> From<T> for BinaryStruct<T> {
 pub trait MaxDigits<const DIGITS: usize> {
     fn max_digits() -> [u8; DIGITS];
 }
+
 impl MaxDigits<20> for usize {
     fn max_digits() -> [u8; 20] {
         [0; 20]
