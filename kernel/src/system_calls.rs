@@ -14,40 +14,40 @@ pub unsafe fn syscall(number: usize, param_0: usize, param_1: usize) -> Option<u
         SysCall::PrintString => {
             print_string(param_0, param_1);
             scheduler::cur().increment_mepc();
-            return None;
+            None
         }
         SysCall::PrintChar => {
             uart::print_char(param_0 as u8 as char);
             scheduler::cur().increment_mepc();
-            return None;
+            None
         }
         SysCall::GetChar => {
             scheduler::cur().increment_mepc();
-            return get_char();
+            get_char()
         }
         SysCall::PrintNum => {
             uart::print_num(param_0);
             scheduler::cur().increment_mepc();
-            return None;
+            None
         }
         SysCall::Exit => {
             exit();
-            return None;
+            None
         }
         SysCall::Yield => {
             scheduler::cur().increment_mepc();
             sys_yield();
-            return None;
+            None
         }
         SysCall::UartOpen => {
             let open = uart::open(scheduler::cur());
             scheduler::cur().increment_mepc();
-            return Some(open as usize);
+            Some(open as usize)
         }
         SysCall::UartClose => {
             let close = uart::close(scheduler::cur());
             scheduler::cur().increment_mepc();
-            return Some(close as usize);
+            Some(close as usize)
         }
     }
 }
@@ -72,7 +72,7 @@ unsafe fn get_char() -> Option<usize> {
     }
     scheduler::cur().set_blocked(scheduler::Reason::Uart);
     sys_yield();
-    return None;
+    None
 }
 
 unsafe fn exit() {

@@ -57,7 +57,7 @@ pub fn next() -> Option<Prog> {
             }
         }
     }
-    return None;
+    None
 }
 /// Switches the program.
 pub fn switch(prog: Prog) {
@@ -110,8 +110,8 @@ pub fn restore_cur_prog() -> usize {
 }
 fn get_free_idx() -> usize {
     unsafe {
-        for idx in 0..PROGS.len() {
-            if PROGS[idx].is_none() {
+        for (idx, prog) in PROGS.iter().enumerate() {
+            if prog.is_none() {
                 return idx;
             }
         }

@@ -16,7 +16,7 @@ impl<T> Protected<T> {
             .compare_exchange_weak(false, true, Ordering::Acquire, Ordering::Acquire)
             .is_err()
         {}
-        return &mut self.data;
+        &mut self.data
     }
     pub fn unlock(&mut self) {
         self.mutex.store(false, Ordering::Release);

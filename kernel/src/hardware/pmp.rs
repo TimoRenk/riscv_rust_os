@@ -32,10 +32,10 @@ struct Pmpcfg([Byte; 8]);
 impl Pmpcfg {
     fn to_usize(&self) -> usize {
         let mut arr = [0; usize::BITS as usize / 8];
-        for i in 0..self.0.len() {
-            arr[i] = self.0[i].into_inner();
+        for (i, byte) in self.0.iter().enumerate() {
+            arr[i] = byte.into_inner();
         }
-        return usize::from_ne_bytes(arr);
+        usize::from_ne_bytes(arr)
     }
     fn set_rwx(&mut self, at: usize) {
         let reg = &mut self.0[at];

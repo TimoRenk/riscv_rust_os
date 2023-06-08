@@ -26,12 +26,12 @@ extern "C" fn main() {
             }
         }
         let mut text = ['\r'; 50];
-        for i in 0..text.len() {
+        for c in text.iter_mut() {
             let char = sys::get_char().unwrap();
             if char == '\r' {
                 break;
             }
-            text[i] = char;
+            *c = char;
         }
         sys::print_char('\n');
         for char in text {

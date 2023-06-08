@@ -28,7 +28,7 @@ where
             Self::increase_idx(&mut self.tail);
             return val;
         }
-        return None;
+        None
     }
     pub fn write(&mut self, val: T) {
         self.buffer[self.head] = val;

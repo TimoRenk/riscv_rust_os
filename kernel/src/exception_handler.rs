@@ -17,8 +17,7 @@ unsafe extern "C" fn exception_handler(mepc: usize, mcause: usize, sp: usize) ->
     } else {
         handle_exception(mcause.into_inner(), mepc, sp);
     }
-    let sp = scheduler::restore_cur_prog();
-    return sp;
+    scheduler::restore_cur_prog()
 }
 
 unsafe fn handle_interrupt(mcause: usize) {

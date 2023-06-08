@@ -9,34 +9,33 @@ pub unsafe fn setup() {
         return;
     }
     SETUP = true;
-    // set M Previous Privilege mode to User so mret returns to user mode.
+    // Set M Previous Privilege mode to User so mret returns to user mode.
     let mstatus: usize;
     read_machine_reg!("mstatus" => mstatus);
     let mut mstatus = BinaryStruct::from(mstatus);
     mstatus.write_register_entry(MSTATUS_MPP_U.0);
     mstatus.write_register_entry(MSTATUS_MPP_U.1);
 
-    // enable machine-mode interrupts.
+    // Enable machine-mode interrupts.
     mstatus.write_register_entry(MSTATUS_MIE);
-    let mstatus = mstatus.into_inner();
-    write_machine_reg!(mstatus => "mstatus");
+    write_machine_reg!(mstatus.into_inner() => "mstatus");
 
-    // set the machine-mode trap handler.
+    // Set the machine-mode trap handler.
     let trap_handler = asm::exception as usize;
-    // disable paging for now.
+    // Disable paging for now.
     let paging = 0usize;
     write_machine_reg!(
         trap_handler => "mtvec",
         paging => "satp"
     );
-    // init timer interrupt.
+    // Init timer interrupt.
     hardware::clint::init();
-    // init hardware interrupt.
+    // Init hardware interrupt.
     hardware::plic::init();
     hardware::uart::init();
-    // configure Physical Memory Protection to give user mode access to all of physical memory.
+    // Configure Physical Memory Protection.
     hardware::pmp::init();
-    // enable software interrupts (ecall) in M mode. enable timer interrupts.
+    // Enable software interrupts (ecall) in M mode. enable timer interrupts.
     let mie: usize;
     read_machine_reg!("mie" => mie);
     let mut mie = BinaryStruct::from(mie);
