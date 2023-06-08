@@ -1,3 +1,5 @@
+use enum_matching::EnumTryFrom;
+#[derive(EnumTryFrom)]
 pub enum SysCall {
     PrintString,
     PrintChar,

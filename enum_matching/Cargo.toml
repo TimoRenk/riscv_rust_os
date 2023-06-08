@@ -1,0 +1,8 @@
+[package]
+authors = ["Timo Renk <renk.git@gmail.com>"]
+name = "enum_matching"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+enum_matching_derive = { path = "enum_matching_derive" }

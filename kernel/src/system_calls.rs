@@ -2,20 +2,11 @@ pub use core::arch::asm;
 use riscv_utils::*;
 
 use super::hardware::{memory_mapping::MemoryMapping, uart};
-use crate::scheduler::{self};
+use crate::scheduler;
 
 fn syscall_from(number: usize) -> SysCall {
-    crate::enum_matching!(
-        number: SysCall::PrintString,
-        SysCall::PrintChar,
-        SysCall::GetChar,
-        SysCall::PrintNum,
-        SysCall::Yield,
-        SysCall::Exit,
-        SysCall::UartOpen,
-        SysCall::UartClose
-    );
-    panic!("Illegal syscall: {}", number);
+    SysCall::try_from(number as isize)
+        .unwrap_or_else(|_| panic!("Illegal syscall number: {}", number))
 }
 
 pub unsafe fn syscall(number: usize, param_0: usize, param_1: usize) -> Option<usize> {

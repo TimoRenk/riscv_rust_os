@@ -3,3 +3,6 @@ authors = ["Timo Renk <renk.git@gmail.com>"]
 edition = "2021"
 name = "riscv_utils"
 version = "0.1.0"
+
+[dependencies]
+enum_matching = { path = "../enum_matching" }

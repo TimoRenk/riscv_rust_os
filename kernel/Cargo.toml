@@ -7,3 +7,4 @@ version = "0.1.0"
 
 [dependencies]
 riscv_utils = { path = "../riscv" }
+enum_matching = { path = "../enum_matching" }

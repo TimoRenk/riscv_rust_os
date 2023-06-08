@@ -16,15 +16,3 @@ macro_rules! println {
 }
 #[allow(unused)]
 pub(crate) use println;
-
-#[allow(unused)]
-macro_rules! enum_matching {
-    ($num:ident: $($enum:expr), +) => {
-        $(if $num == $enum as usize {
-            return $enum;
-        }) +
-    };
-}
-
-#[allow(unused)]
-pub(crate) use enum_matching;

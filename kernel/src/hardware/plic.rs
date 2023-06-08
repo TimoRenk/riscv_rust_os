@@ -1,4 +1,5 @@
 use super::{binary_struct::BinaryStruct, memory_mapping::MemoryMapping};
+use enum_matching::EnumTryFrom;
 
 //  plic - Platform-Level Interrupt Controller
 
@@ -32,6 +33,7 @@ pub const THRESHOLD_ADDR: usize = 0x0c20_0000;
 pub const CLAIM_COMP_ADDR: usize = 0x0c20_0004;
 
 /// Interrupt request.
+#[derive(EnumTryFrom)]
 pub enum Irq {
     Uart = 10,
 }
@@ -52,8 +54,8 @@ pub unsafe fn init() {
 pub unsafe fn read_claim() -> Irq {
     let claim: u32 = MemoryMapping::new(CLAIM_COMP_ADDR).read();
     let claim = claim as usize;
-    crate::enum_matching!(claim: Irq::Uart);
-    panic!("Unknown plic interrupt request: {}", claim);
+    Irq::try_from(claim as isize)
+        .unwrap_or_else(|_| panic!("Unknown plic interrupt request: {}", claim))
 }
 
 pub unsafe fn write_complete(irq: Irq) {
