@@ -1,33 +1,46 @@
+//!  plic -- Platform-Level Interrupt Controller
+
 use super::{binary_struct::BinaryStruct, memory_mapping::MemoryMapping};
 use enum_matching::EnumTryFrom;
-
-//  plic - Platform-Level Interrupt Controller
 
 /// Base-address for QEMU
 ///
 /// [More Info](https://github.com/riscv/riscv-plic-spec/blob/master/riscv-plic.adoc#memory-map)
-/// PLIC_MEMORY_MAP_BASE: usize = 0x0c00_0000;
+const _PLIC_MEMORY_MAP_BASE: usize = 0x0c00_0000;
 
-/// Base address for the interrupt priorities, starts at `PLIC_MEMORY_MAP_BASE + 0x0000_0000`, consisting of 32-bit registers.
-/// Priorities are unsigned u32, 0 means "never interrupt", max priority is platform specific. Note that *0x0000_0000* does not have an interrupt source since interrupt 0 does not exist
+/// Base address for the interrupt priorities.
+/// Starts at `_PLIC_MEMORY_MAP_BASE + 0x0000_0000` consisting of 32-bit registers.
+/// Priorities are unsigned u32.
+/// 0 means "never interrupt".
+/// Max priority is platform specific.
+/// Note that *0x0000_0000* does not have an interrupt source since interrupt 0 does not exist.
 ///
 /// [More Info](https://github.com/riscv/riscv-plic-spec/blob/master/riscv-plic.adoc#interrupt-priorities)
 pub const PRIORITY_BASE_ADDR: usize = 0x0c00_0000;
 
-/// Base address for enabling interrupt sources, starts at `PLIC_MEMORY_MAP_BASE + 0x0000_2000`. 1-bit for enable of interrupt source with ID = bit position. Continuos block for 0-1023 sources for
-/// 15872 contexts
+/// Base address for enabling interrupt sources.
+/// Starts at `_PLIC_MEMORY_MAP_BASE + 0x0000_2000`.
+/// 1-bit for enabling the interrupt source with ID = bit position.
+/// Continuous block (0-1023) for 15872 contexts.
 ///
 /// [More Info](https://github.com/riscv/riscv-plic-spec/blob/master/riscv-plic.adoc#interrupt-enables)
 pub const ENABLE_ADDR: usize = 0x0c00_2000;
 
-/// Base address for setting of a interrupt priority threshold, starts at `PLIC_MEMORY_MAP_BASE + 0x0020_0000`, incremented by 0x1000 for each context.
-/// PLIC ignorers all interrupts with priority less than or equal to the given threshold, set individually for all 15872 contexts.
+/// Base address for setting an interrupt priority threshold.
+/// Starts at `_PLIC_MEMORY_MAP_BASE + 0x0020_0000`.
+/// Incremented by 0x1000 for each context.
+/// PLIC ignorers all interrupts with priority less than or equal to the given threshold.
+/// Set individually for all 15872 contexts.
 ///
 /// [More Info](https://github.com/riscv/riscv-plic-spec/blob/master/riscv-plic.adoc#priority-thresholds)
 pub const THRESHOLD_ADDR: usize = 0x0c20_0000;
 
-/// Base address for the interrupt claim and completion registers, starts at `PLIC_MEMORY_MAP_BASE + 0x0020_0004`, incremented by 0x1000 for each context. If interrupt is handled by service after
-/// receiving an interrupt notification, the Interrupt must be claimed from the PLIC. PLIC returns Interrupt ID to Service, if no interrupt is pending returns 0.
+/// Base address for the interrupt claim and completion registers.
+/// Starts at `_PLIC_MEMORY_MAP_BASE + 0x0020_0004`.
+/// Incremented by 0x1000 for each context.
+/// If an interrupt is handled by a service after receiving an interrupt notification the interrupt has to be claimed from the PLIC.
+/// PLIC returns the interrupt ID to the service.
+/// Returns 0 if no interrupt is pending.
 ///
 /// [More Info](https://github.com/riscv/riscv-plic-spec/blob/master/riscv-plic.adoc#interrupt-claim-process)
 pub const CLAIM_COMP_ADDR: usize = 0x0c20_0004;

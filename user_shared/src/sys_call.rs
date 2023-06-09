@@ -1,3 +1,5 @@
+//! The user side of the system calls.
+
 #![allow(dead_code)]
 use core::arch::asm;
 use riscv_utils as riscv;

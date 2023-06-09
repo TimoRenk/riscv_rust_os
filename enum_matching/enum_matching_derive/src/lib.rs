@@ -1,5 +1,7 @@
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
+
+/// Adds a [TryFrom] implementation for enums to create an enum variant from an [isize].
 #[proc_macro_derive(EnumTryFrom)]
 pub fn enum_matching_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = TokenStream::from(input);
@@ -30,6 +32,6 @@ fn impl_enum_matching(ast: &syn::DeriveInput) -> TokenStream {
             }
         }
     } else {
-        panic!("enum matching is not possible with structs or unions!");
+        panic!("Enum matching is not possible with structs or unions");
     }
 }

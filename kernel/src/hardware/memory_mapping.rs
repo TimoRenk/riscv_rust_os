@@ -1,3 +1,5 @@
+//! A memory mapping to read any type T from a specified memory location.
+
 pub struct MemoryMapping<T> {
     val: *mut T,
 }

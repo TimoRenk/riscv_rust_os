@@ -1,3 +1,5 @@
+//! uart -- Universal Asynchronous Receiver-Transmitter
+
 use core::fmt::Debug;
 use core::ops::{Div, Rem};
 

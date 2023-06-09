@@ -1,3 +1,6 @@
+//! The exception handler.
+//! Called from `exception.S` whenever an exception or interrupt occurs.
+
 use crate::{
     hardware::{binary_struct::BinaryStruct, clint, plic, stack::Stack, uart},
     scheduler,

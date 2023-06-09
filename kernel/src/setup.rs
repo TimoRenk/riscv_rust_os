@@ -1,3 +1,5 @@
+//! Global kernel setup.
+
 use crate::hardware::binary_struct::BinaryStruct;
 use crate::{asm, hardware};
 use riscv_utils::*;

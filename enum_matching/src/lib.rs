@@ -1,3 +1,7 @@
+//! Enum Matching is a simple crate which contains a single derive macro -- **EnumTryFrom**.
+//!
+//! This derive macro adds a [TryFrom] implementation for enums to create an enum variant from an [isize].
+
 #![no_std]
 use core::cmp::{Eq, PartialEq};
 use core::fmt::Debug;

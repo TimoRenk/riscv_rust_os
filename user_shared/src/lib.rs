@@ -1,3 +1,5 @@
+//! Kernel interface for the user program.
+
 #![no_std]
 
 pub mod asm;

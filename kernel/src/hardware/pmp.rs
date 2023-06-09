@@ -1,3 +1,5 @@
+//! pmp -- Physical Memory Protection
+
 use riscv_utils::write_machine_reg;
 
 use super::binary_struct::Byte;

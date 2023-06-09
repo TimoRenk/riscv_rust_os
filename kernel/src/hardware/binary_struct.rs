@@ -1,3 +1,7 @@
+//! A binary structure for easy bit manipulation.
+//! 
+//! The inner type T is the container for the bits.
+
 use core::mem::size_of;
 use core::ops::Not;
 use core::{
@@ -40,7 +44,7 @@ where
     pub fn into_inner(self) -> T {
         self.0
     }
-    /// Checks if the specified bit fits into the bit-size of T
+    /// Checks if the specified bit fits into the bit-size of T.
     fn assert_valid(bit: usize) {
         assert!(
             bit < Self::SIZE,

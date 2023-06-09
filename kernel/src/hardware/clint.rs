@@ -1,4 +1,5 @@
-///  clint - Core Local Interrupt
+//!  clint -- Core Local Interrupt
+
 use super::memory_mapping::MemoryMapping;
 
 const TIMER_DURATION: u64 = 10000000;

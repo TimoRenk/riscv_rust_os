@@ -1,3 +1,5 @@
+//! A simple user program for testing.
+
 #![no_std]
 #![no_main]
 use sys_call as sys;

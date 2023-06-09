@@ -1,3 +1,5 @@
+//! The scheduler. Responsible for managing user programs.
+
 use crate::{
     hardware::sync::Protected,
     hardware::{clint, pmp},

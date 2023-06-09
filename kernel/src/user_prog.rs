@@ -1,3 +1,5 @@
+//! The user program descriptions with a fixed memory location.
+
 pub const USER1: Info = Info {
     id: Id::User1,
     boot_mepc: 0x80100000,

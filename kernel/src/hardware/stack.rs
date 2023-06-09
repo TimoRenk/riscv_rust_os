@@ -1,3 +1,5 @@
+//! A wrapper to read and write registers stored on the stack when context switching.
+
 use super::memory_mapping::MemoryMapping;
 
 #[repr(C)]

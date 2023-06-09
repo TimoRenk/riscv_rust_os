@@ -7,7 +7,7 @@ exception:
         addi sp, sp, -256
 
         // Save the registers.
-        // Infos on register https://en.wikichip.org/wiki/risc-v/registers
+        // Information on registers: https://en.wikichip.org/wiki/risc-v/registers
         sd ra, 0(sp)
         sd sp, 1*REG_SIZE(sp)
         sd gp, 2*REG_SIZE(sp)
@@ -48,7 +48,8 @@ exception:
         // Call the C trap handler in exception_handler.rs
         call exception_handler
 
-        // Restore stackpointer, the stackpointer is returned from the exception_handler function
+        // Restore the stack pointer.
+        // The stack pointer is returned from the exception_handler function.
         mv sp, a0
 
         // Restore registers.
@@ -86,5 +87,4 @@ exception:
 
         addi sp, sp, 256
 
-        // Return to whatever we were doing in the kernel.
         mret
