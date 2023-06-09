@@ -2,14 +2,9 @@ use crate::hardware::binary_struct::BinaryStruct;
 use crate::{asm, hardware};
 use riscv_utils::*;
 
-static mut SETUP: bool = false;
-
+/// Global kernel setup. It must only be called once.
 pub unsafe fn setup() {
-    if SETUP {
-        return;
-    }
-    SETUP = true;
-    // Set M Previous Privilege mode to User so mret returns to user mode.
+    // Set previous privilege mode to user so mret returns to user mode.
     let mstatus: usize;
     read_machine_reg!("mstatus" => mstatus);
     let mut mstatus = BinaryStruct::from(mstatus);
@@ -33,9 +28,9 @@ pub unsafe fn setup() {
     // Init hardware interrupt.
     hardware::plic::init();
     hardware::uart::init();
-    // Configure Physical Memory Protection.
+    // Configure physical memory protection.
     hardware::pmp::init();
-    // Enable software interrupts (ecall) in M mode. enable timer interrupts.
+    // Enable software interrupts (ecall) in M mode. Enable timer interrupts.
     let mie: usize;
     read_machine_reg!("mie" => mie);
     let mut mie = BinaryStruct::from(mie);

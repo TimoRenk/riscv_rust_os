@@ -6,7 +6,6 @@ readme = "README.md"
 version = "0.1.0"
 
 [dependencies]
-riscv_utils = { path = "../riscv" }
 user_shared = { path = "../user_shared" }
 
 [[bin]]

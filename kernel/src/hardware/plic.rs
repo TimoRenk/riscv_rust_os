@@ -38,28 +38,34 @@ pub enum Irq {
     Uart = 10,
 }
 
-pub unsafe fn init() {
-    let uart_priority_addr = get_priority_addr(Irq::Uart);
-    MemoryMapping::new(uart_priority_addr).write(5);
-    // Enable in context.
-    let mut enable_c0 = [BinaryStruct::from(0u32); 32];
-    let (uart_idx, uart_bit) = group_idx_and_bit_pos(Irq::Uart);
-    enable_c0[uart_idx].at(uart_bit, true);
-    let enable_addr = get_enable_addr(uart_idx);
-    MemoryMapping::new(enable_addr).write(enable_c0[uart_idx].into_inner());
-    // Set thresholds for context.
-    MemoryMapping::new(THRESHOLD_ADDR).write(0u32);
+pub fn init() {
+    unsafe {
+        let uart_priority_addr = get_priority_addr(Irq::Uart);
+        MemoryMapping::new(uart_priority_addr).write(5);
+        // Enable in context.
+        let mut enable_c0 = [BinaryStruct::from(0u32); 32];
+        let (uart_idx, uart_bit) = group_idx_and_bit_pos(Irq::Uart);
+        enable_c0[uart_idx].at(uart_bit, true);
+        let enable_addr = get_enable_addr(uart_idx);
+        MemoryMapping::new(enable_addr).write(enable_c0[uart_idx].into_inner());
+        // Set thresholds for context.
+        MemoryMapping::new(THRESHOLD_ADDR).write(0u32);
+    }
 }
 
-pub unsafe fn read_claim() -> Irq {
-    let claim: u32 = MemoryMapping::new(CLAIM_COMP_ADDR).read();
-    let claim = claim as usize;
-    Irq::try_from(claim as isize)
-        .unwrap_or_else(|_| panic!("Unknown plic interrupt request: {}", claim))
+pub fn read_claim() -> Irq {
+    unsafe {
+        let claim: u32 = MemoryMapping::new(CLAIM_COMP_ADDR).read();
+        let claim = claim as usize;
+        Irq::try_from(claim as isize)
+            .unwrap_or_else(|_| panic!("Unknown plic interrupt request: {}", claim))
+    }
 }
 
-pub unsafe fn write_complete(irq: Irq) {
-    MemoryMapping::new(CLAIM_COMP_ADDR).write(irq as u32);
+pub fn write_complete(irq: Irq) {
+    unsafe {
+        MemoryMapping::new(CLAIM_COMP_ADDR).write(irq as u32);
+    }
 }
 
 fn get_priority_addr(irq: Irq) -> usize {

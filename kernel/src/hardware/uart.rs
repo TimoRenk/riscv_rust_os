@@ -5,101 +5,101 @@ use crate::scheduler::Prog;
 
 use super::binary_struct::{BinaryStruct, Byte, MaxDigits};
 use super::memory_mapping::MemoryMapping;
-use super::ring_buffer::{self, RingBuffer, BUFFER_SIZE};
+use super::ring_buffer::RingBuffer;
 use super::sync::Protected;
 
 const BASE_ADDR: usize = 0x1000_0000;
 
-static mut READ_CHAR: Protected<RingBuffer<char>> =
-    Protected::new(ring_buffer::new(['X'; BUFFER_SIZE]));
+static READ_CHAR: Protected<RingBuffer<char>> = Protected::new(RingBuffer::new('X'));
 
-static mut UART: Uart = Uart {
-    reg: UartRegister::new(BASE_ADDR),
-    open_user_prog: None,
-};
+pub static UART: Protected<Uart> = Protected::new(Uart::new());
 
-pub unsafe fn init() {
-    let mem_ier = &mut UART.reg.ier_dlm;
-    let mut ier = BinaryStruct::from(0);
-    ier.at(0, true); // receive interrupt
-    ier.at(1, false); // transmit interrupt
-    ier.at(2, false); // receiver line status interrupt
-    ier.at(3, false); // receiver transmit status interrupt
-    mem_ier.write(ier);
+pub fn init() {
+    unsafe {
+        let mem_ier = &UART.lock().reg.ier_dlm;
+        let mut ier = BinaryStruct::from(0);
+        ier.at(0, true); // receive interrupt
+        ier.at(1, false); // transmit interrupt
+        ier.at(2, false); // receiver line status interrupt
+        ier.at(3, false); // receiver transmit status interrupt
+        mem_ier.write(ier);
+    }
 }
 
-pub unsafe fn get_interrupt_cause() -> Interrupt {
-    let isr = UART.reg.isr_fcr.read();
-    let b0 = isr.is_set(0);
-    let b1 = isr.is_set(1);
-    let b2 = isr.is_set(2);
-    let b3 = isr.is_set(3);
-    if b0 {
-        return Interrupt::Error;
+pub fn get_interrupt_cause() -> Interrupt {
+    unsafe {
+        let isr = UART.lock().reg.isr_fcr.read();
+        let b0 = isr.is_set(0);
+        let b1 = isr.is_set(1);
+        let b2 = isr.is_set(2);
+        let b3 = isr.is_set(3);
+        if b0 {
+            return Interrupt::Error;
+        }
+        if b1 && b2 && !b3 {
+            return Interrupt::LineStatusReg;
+        }
+        if !b1 && b2 && !b3 {
+            return Interrupt::ReceivedDataRdy;
+        }
+        if !b1 && b2 && b3 {
+            return Interrupt::ReceivedDataTimeout;
+        }
+        if b1 && !b2 && !b3 {
+            return Interrupt::TransHoldRegEmpty;
+        }
+        if !b1 && !b2 && !b3 {
+            return Interrupt::ModemStatusReg;
+        }
+        Interrupt::Error
     }
-    if b1 && b2 && !b3 {
-        return Interrupt::LineStatusReg;
-    }
-    if !b1 && b2 && !b3 {
-        return Interrupt::ReceivedDataRdy;
-    }
-    if !b1 && b2 && b3 {
-        return Interrupt::ReceivedDataTimeout;
-    }
-    if b1 && !b2 && !b3 {
-        return Interrupt::TransHoldRegEmpty;
-    }
-    if !b1 && !b2 && !b3 {
-        return Interrupt::ModemStatusReg;
-    }
-    Interrupt::Error
 }
-
-/// Only call if an interrupt happened. Returns the blocking user prog.
-pub unsafe fn read_char() -> Option<Prog> {
-    let char = UART.read_char();
-    if UART.open_user_prog.is_some() {
-        READ_CHAR.lock_and_get().write(char);
-        READ_CHAR.unlock();
+/// Only call if an interrupt happened.
+/// Returns the blocking user prog.
+pub unsafe fn read_char_to_buffer() -> Option<Prog> {
+    let uart = UART.lock();
+    let char = uart.read_char();
+    let open_user_prog = uart.open_user_prog;
+    uart.unlock();
+    if open_user_prog.is_some() {
+        READ_CHAR.lock().write(char);
     }
-    UART.open_user_prog
+    open_user_prog
 }
-pub unsafe fn get_char() -> Option<char> {
-    let char = READ_CHAR.lock_and_get().read();
-    READ_CHAR.unlock();
+pub fn get_char() -> Option<char> {
+    let char = READ_CHAR.lock().read();
     char
 }
-
-//todo catch race condition?!
-pub unsafe fn print_str(str: &str) {
-    str.chars().for_each(|c| print_char(c));
-}
-pub unsafe fn print_char(char: char) {
-    UART.print_char(char as u8);
+pub fn print_char(char: char) {
+    UART.lock().print_char(char as u8);
 }
 /// Opens 'read' and returns true if successful or already blocked by the user_prog.
 /// False if blocked by a different user_prog.
-pub unsafe fn open(user_prog: Prog) -> bool {
-    if let Some(open) = UART.open_user_prog {
+pub fn open(user_prog: Prog) -> bool {
+    let mut uart = UART.lock();
+    if let Some(open) = uart.open_user_prog {
         return open == user_prog;
     }
-    UART.open_user_prog = Some(user_prog);
-    READ_CHAR.lock_and_get().clear();
-    READ_CHAR.unlock();
+    uart.open_user_prog = Some(user_prog);
+    READ_CHAR.lock().clear();
     true
 }
-/// Closes 'read' if it is blocked by user_prog. Returns true when successful.
-pub unsafe fn close(user_prog: Prog) -> bool {
-    if Some(user_prog) == UART.open_user_prog {
-        UART.open_user_prog = None;
+
+/// Closes 'read' if it is blocked by the user_prog. Returns true when successful.
+pub fn close(user_prog: Prog) -> bool {
+    let mut uart = UART.lock();
+    if Some(user_prog) == uart.open_user_prog {
+        uart.open_user_prog = None;
         return true;
     }
     false
 }
-pub unsafe fn is_open(user_prog: Prog) -> bool {
-    UART.open_user_prog == Some(user_prog)
+
+pub fn is_open(user_prog: Prog) -> bool {
+    UART.lock().open_user_prog == Some(user_prog)
 }
-pub unsafe fn print_num<T, const DIGITS: usize>(number: T)
+
+pub fn print_num<T, const DIGITS: usize>(number: T)
 where
     T: From<u8>
         + MaxDigits<DIGITS>
@@ -110,7 +110,7 @@ where
         + TryInto<u8>,
 {
     let digits = to_single_digits(number);
-
+    let mut uart = UART.lock();
     let mut first = false;
     for byte in digits {
         if byte != 0 {
@@ -118,17 +118,13 @@ where
         }
         if first {
             let ascii = byte + 0x30;
-            UART.print_char(ascii);
+            uart.print_char(ascii);
         }
     }
     if !first {
         let ascii = 0x30;
-        UART.print_char(ascii);
+        uart.print_char(ascii);
     }
-}
-
-pub unsafe fn get_uart() -> &'static mut Uart {
-    &mut UART
 }
 
 fn to_single_digits<T, const DIGITS: usize>(number: T) -> [u8; DIGITS]
@@ -158,8 +154,13 @@ pub struct Uart {
     reg: UartRegister,
     open_user_prog: Option<Prog>,
 }
-
 impl Uart {
+    const fn new() -> Self {
+        Uart {
+            reg: UartRegister::new(BASE_ADDR),
+            open_user_prog: None,
+        }
+    }
     fn print_char(&mut self, char: u8) {
         unsafe {
             loop {
@@ -207,23 +208,15 @@ struct UartRegister {
 }
 impl UartRegister {
     const fn new(addr: usize) -> Self {
-        let rbr_thr_dll = MemoryMapping::new(addr);
-        let ier_dlm = MemoryMapping::new(addr + 1);
-        let isr_fcr = MemoryMapping::new(addr + 2);
-        let lcr = MemoryMapping::new(addr + 3);
-        let mcr = MemoryMapping::new(addr + 4);
-        let lsr = MemoryMapping::new(addr + 5);
-        let msr = MemoryMapping::new(addr + 6);
-        let scr = MemoryMapping::new(addr + 7);
         UartRegister {
-            rbr_thr_dll,
-            ier_dlm,
-            isr_fcr,
-            lcr,
-            mcr,
-            lsr,
-            msr,
-            scr,
+            rbr_thr_dll: MemoryMapping::new(addr),
+            ier_dlm: MemoryMapping::new(addr + 1),
+            isr_fcr: MemoryMapping::new(addr + 2),
+            lcr: MemoryMapping::new(addr + 3),
+            mcr: MemoryMapping::new(addr + 4),
+            lsr: MemoryMapping::new(addr + 5),
+            msr: MemoryMapping::new(addr + 6),
+            scr: MemoryMapping::new(addr + 7),
         }
     }
 }

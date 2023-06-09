@@ -6,5 +6,5 @@ readme = "README.md"
 version = "0.1.0"
 
 [dependencies]
-riscv_utils = { path = "../riscv" }
+riscv_utils = { path = "../riscv_utils" }
 enum_matching = { path = "../enum_matching" }

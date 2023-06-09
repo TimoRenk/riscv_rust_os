@@ -8,13 +8,14 @@ mod macros;
 mod panic_handler;
 mod scheduler;
 mod setup;
-mod system_calls;
+mod sys_call;
 mod user_prog;
 
 pub(crate) use macros::*;
 
-//todo implement shutdown
-fn _shutdown() {}
+fn _shutdown() {
+    todo!("Implement shutdown.")
+}
 
 #[no_mangle]
 unsafe extern "C" fn kernel_setup() {

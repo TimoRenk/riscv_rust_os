@@ -1,18 +1,19 @@
-pub use core::arch::asm;
+//! The kernel side of the system calls.
+
 use riscv_utils::*;
 
 use super::hardware::{memory_mapping::MemoryMapping, uart};
 use crate::scheduler;
 
-fn syscall_from(number: usize) -> SysCall {
+fn sys_call_from(number: usize) -> SysCall {
     SysCall::try_from(number as isize)
         .unwrap_or_else(|_| panic!("Illegal syscall number: {}", number))
 }
 
-pub unsafe fn syscall(number: usize, param_0: usize, param_1: usize) -> Option<usize> {
-    match syscall_from(number) {
+pub fn sys_call(number: usize, param_0: usize, param_1: usize) -> Option<usize> {
+    match sys_call_from(number) {
         SysCall::PrintString => {
-            print_string(param_0, param_1);
+            unsafe { print_string(param_0, param_1) };
             scheduler::cur().increment_mepc();
             None
         }
@@ -61,8 +62,9 @@ unsafe fn print_string(str_ptr: usize, size: usize) {
     }
 }
 
-/// Returns true if user prog holds uart and blocks the process. Returns false otherwise.
-unsafe fn get_char() -> Option<usize> {
+/// Returns [Some] if user prog holds uart and blocks the process.
+/// Returns [None] otherwise.
+fn get_char() -> Option<usize> {
     let user_prog = scheduler::cur();
     if !uart::is_open(user_prog) {
         return Some(0);
@@ -75,7 +77,7 @@ unsafe fn get_char() -> Option<usize> {
     None
 }
 
-unsafe fn exit() {
+fn exit() {
     let cur = scheduler::cur();
     uart::close(cur);
     let prog_info = cur.prog_info();
@@ -84,7 +86,7 @@ unsafe fn exit() {
     sys_yield();
 }
 
-unsafe fn sys_yield() {
+fn sys_yield() {
     let next =
         scheduler::next().expect("No next user prog for system yield. Idle task not implemented");
     scheduler::switch(next);

@@ -3,7 +3,7 @@ use crate::{
     scheduler,
 };
 
-use super::system_calls;
+use super::sys_call;
 use riscv_utils::*;
 
 #[no_mangle]
@@ -34,7 +34,7 @@ unsafe fn handle_interrupt(mcause: usize) {
             match irq {
                 plic::Irq::Uart => {
                     if uart::get_interrupt_cause() == uart::Interrupt::ReceivedDataRdy {
-                        if let Some(uart_prog) = uart::read_char() {
+                        if let Some(uart_prog) = uart::read_char_to_buffer() {
                             if uart_prog.is_blocked(scheduler::Reason::Uart) {
                                 let char = uart::get_char()
                                     .expect("Char should be present as it was just read");
@@ -98,7 +98,7 @@ unsafe fn handle_exception(mcause: usize, mepc: usize, sp: usize) {
             let number = stack.a7();
             let param_0 = stack.a0();
             let param_1 = stack.a1();
-            if let Some(ret) = system_calls::syscall(number, param_0, param_1) {
+            if let Some(ret) = sys_call::sys_call(number, param_0, param_1) {
                 stack.set_ret(ret);
                 stack.write();
             }

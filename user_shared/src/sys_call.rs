@@ -3,7 +3,7 @@ use core::arch::asm;
 use riscv_utils as riscv;
 use riscv_utils::SysCall;
 
-unsafe fn system_call(syscall: SysCall, param_0: usize, param_1: usize) -> usize {
+unsafe fn sys_call(syscall: SysCall, param_0: usize, param_1: usize) -> usize {
     let number = syscall as usize;
     riscv::write_function_reg!(
         number => "a7",
@@ -18,14 +18,14 @@ unsafe fn system_call(syscall: SysCall, param_0: usize, param_1: usize) -> usize
 
 pub fn print_char(char: char) {
     unsafe {
-        system_call(SysCall::PrintChar, char as usize, 0);
+        sys_call(SysCall::PrintChar, char as usize, 0);
     }
 }
 
 /// Requires uart to be open. Returns 'None' otherwise.
 pub fn get_char() -> Option<char> {
     unsafe {
-        let res = system_call(SysCall::GetChar, 0, 0);
+        let res = sys_call(SysCall::GetChar, 0, 0);
         if res == 0 {
             return None;
         }
@@ -38,32 +38,32 @@ pub fn print(string: &str) {
         return;
     }
     unsafe {
-        system_call(SysCall::PrintString, string.as_ptr() as usize, string.len());
+        sys_call(SysCall::PrintString, string.as_ptr() as usize, string.len());
     }
 }
-//todo this should be changed to one system call..
-pub fn println(string: &str) {
-    print(string);
-    print_char('\n');
-}
+
 pub fn print_num(number: usize) {
     unsafe {
-        system_call(SysCall::PrintNum, number, 0);
+        sys_call(SysCall::PrintNum, number, 0);
     }
 }
+
 pub fn exit() {
     unsafe {
-        system_call(SysCall::Exit, 0, 0);
+        sys_call(SysCall::Exit, 0, 0);
     }
 }
+
 pub fn sys_yield() {
     unsafe {
-        system_call(SysCall::Yield, 0, 0);
+        sys_call(SysCall::Yield, 0, 0);
     }
 }
+
 pub fn uart_open() -> bool {
-    unsafe { system_call(SysCall::UartOpen, 0, 0) != 0 }
+    unsafe { sys_call(SysCall::UartOpen, 0, 0) != 0 }
 }
+
 pub fn uart_close() -> bool {
-    unsafe { system_call(SysCall::UartClose, 0, 0) != 0 }
+    unsafe { sys_call(SysCall::UartClose, 0, 0) != 0 }
 }

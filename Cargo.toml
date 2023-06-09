@@ -1,7 +1,7 @@
 [workspace]
 members = [
   "kernel",
-  "riscv",
+  "riscv_utils",
   "user_shared",
   "user_1",
   "user_2",
